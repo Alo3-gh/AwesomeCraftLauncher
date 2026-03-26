@@ -16,6 +16,7 @@ const { MojangRestAPI, MojangErrorCode } = require('helios-core/mojang')
 const { MicrosoftAuth, MicrosoftErrorCode } = require('helios-core/microsoft')
 const { AZURE_CLIENT_ID }    = require('./ipcconstants')
 const Lang = require('./langloader')
+const crypto = require('crypto')
 
 const log = LoggerUtil.getLogger('AuthManager')
 
@@ -167,6 +168,47 @@ exports.addMojangAccount = async function(username, password) {
     }
 }
 
+/**
+ * Create a deterministic UUID compatible with Minecraft offline UUIDs.
+ * Algorithm: uuid = MD5("OfflinePlayer:" + username) + UUID version/variant bits.
+ *
+ * @param {string} username
+ * @returns {string} UUID with hyphens
+ */
+function generateOfflineUUID(username) {
+    const md5 = crypto.createHash('md5')
+        .update('OfflinePlayer:' + username, 'utf8')
+        .digest('hex')
+
+    const part1 = md5.substring(0, 8)
+    const part2 = md5.substring(8, 12)
+
+    // version 3 => bits 12-15 = 0011
+    const part3 = '3' + md5.substring(13, 16)
+
+    // variant => bits 6-7 = 10
+    const part4a = (parseInt(md5.substring(16, 18), 16) & 0x3f) | 0x80
+    const part4 = part4a.toString(16).padStart(2, '0') + md5.substring(18, 20)
+
+    const part5 = md5.substring(20, 32)
+
+    return [part1, part2, part3, part4, part5].join('-')
+}
+
+/**
+ * Add an offline account.
+ * Offline accounts do not require remote validation.
+ *
+ * @param {string} username
+ * @returns {Object} The created offline auth account
+ */
+exports.addOfflineAccount = async function(username) {
+    const uuid = generateOfflineUUID(username)
+    const authData = ConfigManager.addOfflineAuthAccount(uuid, username, username)
+    ConfigManager.save()
+    return authData
+}
+
 const AUTH_MODE = { FULL: 0, MS_REFRESH: 1, MC_REFRESH: 2 }
 
 /**
@@ -287,6 +329,23 @@ exports.removeMojangAccount = async function(uuid){
         }
     } catch (err){
         log.error('Error while removing account', err)
+        return Promise.reject(err)
+    }
+}
+
+/**
+ * Remove an offline account. No remote calls are made.
+ *
+ * @param {string} uuid
+ * @returns {Promise<void>}
+ */
+exports.removeOfflineAccount = async function(uuid){
+    try {
+        ConfigManager.removeAuthAccount(uuid)
+        ConfigManager.save()
+        return Promise.resolve()
+    } catch (err){
+        log.error('Error while removing offline account', err)
         return Promise.reject(err)
     }
 }
@@ -416,7 +475,10 @@ async function validateSelectedMicrosoftAccount(){
 exports.validateSelected = async function(){
     const current = ConfigManager.getSelectedAccount()
 
-    if(current.type === 'microsoft') {
+    if(current.type === 'offline') {
+        // Offline accounts never require remote validation.
+        return true
+    } else if(current.type === 'microsoft') {
         return await validateSelectedMicrosoftAccount()
     } else {
         return await validateSelectedMojangAccount()

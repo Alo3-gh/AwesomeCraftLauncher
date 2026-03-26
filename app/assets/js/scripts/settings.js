@@ -351,6 +351,15 @@ document.getElementById('settingsAddMojangAccount').onclick = (e) => {
     })
 }
 
+// Bind the add offline account button.
+document.getElementById('settingsAddOfflineAccount').onclick = (e) => {
+    switchView(getCurrentView(), VIEWS.offlineLogin, 500, 500, () => {
+        loginOfflineViewOnCancel = VIEWS.settings
+        loginOfflineViewOnSuccess = VIEWS.settings
+        loginOfflineCancelEnabled(true)
+    })
+}
+
 // Bind the add microsoft account button.
 document.getElementById('settingsAddMicrosoftAccount').onclick = (e) => {
     switchView(getCurrentView(), VIEWS.waiting, 500, 500, () => {
@@ -519,7 +528,11 @@ function processLogOut(val, isLastAccount){
             ipcRenderer.send(MSFT_OPCODE.OPEN_LOGOUT, uuid, isLastAccount)
         })
     } else {
-        AuthManager.removeMojangAccount(uuid).then(() => {
+        const remover = targetAcc.type === 'offline'
+            ? AuthManager.removeOfflineAccount
+            : AuthManager.removeMojangAccount
+
+        remover(uuid).then(() => {
             if(!isLastAccount && uuid === prevSelAcc.uuid){
                 const selAcc = ConfigManager.getSelectedAccount()
                 refreshAuthAccountSelected(selAcc.uuid)
@@ -619,6 +632,7 @@ function refreshAuthAccountSelected(uuid){
 }
 
 const settingsCurrentMicrosoftAccounts = document.getElementById('settingsCurrentMicrosoftAccounts')
+const settingsCurrentOfflineAccounts = document.getElementById('settingsCurrentOfflineAccounts')
 const settingsCurrentMojangAccounts = document.getElementById('settingsCurrentMojangAccounts')
 
 /**
@@ -633,6 +647,7 @@ function populateAuthAccounts(){
     const selectedUUID = ConfigManager.getSelectedAccount().uuid
 
     let microsoftAuthAccountStr = ''
+    let offlineAuthAccountStr = ''
     let mojangAuthAccountStr = ''
 
     authKeys.forEach((val) => {
@@ -664,6 +679,8 @@ function populateAuthAccounts(){
 
         if(acc.type === 'microsoft') {
             microsoftAuthAccountStr += accHtml
+        } else if(acc.type === 'offline') {
+            offlineAuthAccountStr += accHtml
         } else {
             mojangAuthAccountStr += accHtml
         }
@@ -671,6 +688,7 @@ function populateAuthAccounts(){
     })
 
     settingsCurrentMicrosoftAccounts.innerHTML = microsoftAuthAccountStr
+    settingsCurrentOfflineAccounts.innerHTML = offlineAuthAccountStr
     settingsCurrentMojangAccounts.innerHTML = mojangAuthAccountStr
 }
 

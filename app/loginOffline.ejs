@@ -1,0 +1,45 @@
+<div id="loginOfflineContainer" style="display: none;">
+    <div id="loginOfflineCancelContainer" style="display: none;">
+        <button id="loginOfflineCancelButton" type="button">
+            <div id="loginOfflineCancelIcon">X</div>
+            <span id="loginOfflineCancelText"><%- lang('loginOffline.cancelText') %></span>
+        </button>
+    </div>
+
+    <div id="loginOfflineContent">
+        <form id="loginOfflineForm">
+            <img id="loginOfflineImageSeal" src="assets/images/SealCircle.png"/>
+            <span id="loginOfflineSubheader"><%- lang('loginOffline.loginSubheader') %></span>
+
+            <div class="loginFieldContainer">
+                <span class="loginErrorSpan" id="loginOfflineUsernameError"><%- lang('loginOffline.usernameError') %></span>
+                <input
+                    id="loginOfflineUsername"
+                    class="loginField"
+                    type="text"
+                    placeholder="<%- lang('loginOffline.usernamePlaceholder') %>"
+                    autocomplete="off"
+                    spellcheck="false"
+                    maxlength="16"
+                />
+            </div>
+
+            <button id="loginOfflineButton" disabled type="button">
+                <div id="loginOfflineButtonContent">
+                    <span id="loginOfflineButtonLabel"><%- lang('loginOffline.loginButtonText') %></span>
+                    <svg id="loginOfflineSVG" viewBox="0 0 24.87 13.97">
+                        <defs>
+                            <style>.arrowLine{fill:none;stroke:#FFF;stroke-width:2px;transition: 0.25s ease;}</style>
+                        </defs>
+                        <polyline class="arrowLine" points="0.71 13.26 12.56 1.41 24.16 13.02"/>
+                    </svg>
+                    <div class="offline-circle-loader">
+                        <div class="offline-checkmark draw"></div>
+                    </div>
+                </div>
+            </button>
+        </form>
+    </div>
+
+    <script src="./assets/js/scripts/loginOffline.js"></script>
+</div>

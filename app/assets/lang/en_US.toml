@@ -38,7 +38,15 @@ loginPasswordDisclaimer2 = "{appName} is not affiliated with Mojang AB."
 loginOptionsTitle = "Login Options"
 loginWithMicrosoft = "Login with Microsoft"
 loginWithMojang = "Login with Mojang"
+loginWithOffline = "Login Offline"
 cancelButton = "Cancel"
+
+[ejs.loginOffline]
+loginSubheader = "OFFLINE LOGIN"
+usernamePlaceholder = "Username"
+usernameError = ""
+loginButtonText = "PLAY OFFLINE"
+cancelText = "Cancel"
 
 [ejs.overlay]
 serverSelectHeader = "Available Servers"
@@ -64,6 +72,8 @@ microsoftAccount = "Microsoft"
 addMicrosoftAccount = "+ Add Microsoft Account"
 mojangAccount = "Mojang"
 addMojangAccount = "+ Add Mojang Account"
+offlineAccount = "Offline"
+addOfflineAccount = "+ Add Offline Account"
 minecraftTabHeaderText = "Minecraft Settings"
 minecraftTabHeaderDesc = "Options related to game launch."
 gameResolutionTitle = "Game Resolution"
@@ -143,6 +153,15 @@ login = "LOGIN"
 loggingIn = "LOGGING IN"
 success = "SUCCESS"
 tryAgain = "Try Again"
+
+[js.loginOffline]
+loginButtonText = "PLAY OFFLINE"
+loggingIn = "PLAYING OFFLINE.."
+
+[js.loginOffline.error]
+requiredUsername = "Username cannot be empty"
+invalidUsername = "Username must be 3–16 characters: letters, numbers, underscores only"
+generic = "An error occurred. Please try again."
 
 [js.login.error]
 invalidValue = "* Invalid Value"

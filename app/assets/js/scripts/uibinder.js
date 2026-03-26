@@ -18,6 +18,7 @@ const VIEWS = {
     landing: '#landingContainer',
     loginOptions: '#loginOptionsContainer',
     login: '#loginContainer',
+    offlineLogin: '#loginOfflineContainer',
     settings: '#settingsContainer',
     welcome: '#welcomeContainer',
     waiting: '#waitingContainer'
@@ -342,10 +343,11 @@ async function validateSelectedAccount(){
             setOverlayHandler(() => {
 
                 const isMicrosoft = selectedAcc.type === 'microsoft'
+                const isOffline = selectedAcc.type === 'offline'
 
                 if(isMicrosoft) {
                     // Empty for now
-                } else {
+                } else if(!isOffline) {
                     // Mojang
                     // For convenience, pre-populate the username of the account.
                     document.getElementById('loginUsername').value = selectedAcc.username
@@ -367,6 +369,12 @@ async function validateSelectedAccount(){
                                 selectedAcc.microsoft.access_token,
                                 selectedAcc.microsoft.refresh_token,
                                 selectedAcc.microsoft.expires_at
+                            )
+                        } else if(isOffline) {
+                            ConfigManager.addOfflineAuthAccount(
+                                selectedAcc.uuid,
+                                selectedAcc.username,
+                                selectedAcc.displayName
                             )
                         } else {
                             ConfigManager.addMojangAuthAccount(selectedAcc.uuid, selectedAcc.accessToken, selectedAcc.username, selectedAcc.displayName)
