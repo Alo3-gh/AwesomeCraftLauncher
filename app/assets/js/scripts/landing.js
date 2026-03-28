@@ -936,11 +936,11 @@ document.addEventListener('keydown', (e) => {
  */
 function displayArticle(articleObject, index){
     newsArticleTitle.innerHTML = articleObject.title
-    newsArticleTitle.href = articleObject.link
+    newsArticleTitle.href = (typeof articleObject.link === 'string' && /^https?:\/\//i.test(articleObject.link)) ? articleObject.link : '#'
     newsArticleAuthor.innerHTML = 'by ' + articleObject.author
     newsArticleDate.innerHTML = articleObject.date
     newsArticleComments.innerHTML = articleObject.comments
-    newsArticleComments.href = articleObject.commentsLink
+    newsArticleComments.href = (typeof articleObject.commentsLink === 'string' && /^https?:\/\//i.test(articleObject.commentsLink)) ? articleObject.commentsLink : '#'
     newsArticleContentScrollable.innerHTML = '<div id="newsArticleContentWrapper"><div class="newsArticleSpacerTop"></div>' + articleObject.content + '<div class="newsArticleSpacerBot"></div></div>'
     Array.from(newsArticleContentScrollable.getElementsByClassName('bbCodeSpoilerButton')).forEach(v => {
         v.onclick = () => {

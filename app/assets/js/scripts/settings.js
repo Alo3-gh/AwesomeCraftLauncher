@@ -644,7 +644,8 @@ function populateAuthAccounts(){
     if(authKeys.length === 0){
         return
     }
-    const selectedUUID = ConfigManager.getSelectedAccount().uuid
+    const selectedAcc = ConfigManager.getSelectedAccount()
+    const selectedUUID = selectedAcc != null ? selectedAcc.uuid : null
 
     let microsoftAuthAccountStr = ''
     let offlineAuthAccountStr = ''
@@ -669,7 +670,7 @@ function populateAuthAccounts(){
                     </div>
                 </div>
                 <div class="settingsAuthAccountActions">
-                    <button class="settingsAuthAccountSelect" ${selectedUUID === acc.uuid ? 'selected>' + Lang.queryJS('settings.authAccountPopulate.selectedAccount') : '>' + Lang.queryJS('settings.authAccountPopulate.selectAccount')}</button>
+                    <button class="settingsAuthAccountSelect"${selectedUUID === acc.uuid ? ' selected' : ''}>${selectedUUID === acc.uuid ? Lang.queryJS('settings.authAccountPopulate.selectedAccount') : Lang.queryJS('settings.authAccountPopulate.selectAccount')}</button>
                     <div class="settingsAuthAccountWrapper">
                         <button class="settingsAuthAccountLogOut">${Lang.queryJS('settings.authAccountPopulate.logout')}</button>
                     </div>
@@ -1470,6 +1471,7 @@ function populateAboutVersionInformation(){
  * of the current version. This value is displayed on the UI.
  */
 function populateReleaseNotes(){
+    settingsAboutChangelogButton.setAttribute('href', '#')
     $.ajax({
         url: 'https://github.com/dscalzi/HeliosLauncher/releases.atom',
         success: (data) => {
@@ -1484,7 +1486,11 @@ function populateReleaseNotes(){
                 if(id === version){
                     settingsAboutChangelogTitle.innerHTML = entry.find('title').text()
                     settingsAboutChangelogText.innerHTML = entry.find('content').text()
-                    settingsAboutChangelogButton.href = entry.find('link').attr('href')
+                    const releaseHref = entry.find('link[rel="alternate"]').attr('href')
+                        || entry.find('link').filter((_, el) => !!$(el).attr('href')).first().attr('href')
+                    if (typeof releaseHref === 'string' && /^https?:\/\//i.test(releaseHref)) {
+                        settingsAboutChangelogButton.href = releaseHref
+                    }
                 }
             }
 

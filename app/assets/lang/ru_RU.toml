@@ -1,0 +1,365 @@
+[ejs.landing]
+updateAvailableTooltip = "Доступно обновление"
+usernamePlaceholder = "Имя пользователя"
+usernameEditButton = "Изменить"
+settingsTooltip = "Настройки"
+serverStatus = "СЕРВЕР"
+serverStatusPlaceholder = "НЕ В СЕТИ"
+mojangStatus = "СТАТУС MOJANG"
+mojangStatusTooltipTitle = "Сервисы"
+mojangStatusNETitle = "Необязательные"
+newsButton = "НОВОСТИ"
+launchButton = "ИГРАТЬ"
+launchButtonPlaceholder = "&#8226; Сервер не выбран"
+launchDetails = "Подождите.."
+newsNavigationStatus = "{currentPage} из {totalPages}"
+newsErrorLoadSpan = "Проверка новостей.."
+newsErrorFailedSpan = "Не удалось загрузить новости"
+newsErrorRetryButton = "Повторить"
+newsErrorNoneSpan = "Новостей нет"
+
+[ejs.login]
+loginCancelText = "Отмена"
+loginSubheader = "ВХОД В MINECRAFT"
+loginEmailError = "* Неверное значение"
+loginEmailPlaceholder = "EMAIL ИЛИ ИМЯ ПОЛЬЗОВАТЕЛЯ"
+loginPasswordError = "* Обязательно"
+loginPasswordPlaceholder = "ПАРОЛЬ"
+loginForgotPasswordLink = "https://minecraft.net/password/forgot/"
+loginForgotPasswordText = "забыли пароль?"
+loginRememberMeText = "запомнить?"
+loginButtonText = "ВОЙТИ"
+loginNeedAccountLink = "https://minecraft.net/store/minecraft-java-edition/"
+loginNeedAccountText = "Нет аккаунта?"
+loginPasswordDisclaimer1 = "Пароль отправляется напрямую в Mojang и нигде не сохраняется."
+loginPasswordDisclaimer2 = "{appName} не связан с Mojang AB."
+
+[ejs.loginOptions]
+loginOptionsTitle = "Способ входа"
+loginWithMicrosoft = "Войти через Microsoft"
+loginWithMojang = "Войти через Mojang"
+loginWithOffline = "Войти офлайн"
+cancelButton = "Отмена"
+
+[ejs.loginOffline]
+loginSubheader = "ОФЛАЙН-ВХОД"
+usernamePlaceholder = "Имя пользователя"
+usernameError = ""
+loginButtonText = "ИГРАТЬ ОФЛАЙН"
+cancelText = "Отмена"
+
+[ejs.overlay]
+serverSelectHeader = "Доступные серверы"
+serverSelectConfirm = "Выбрать"
+serverSelectCancel = "Отмена"
+accountSelectHeader = "Выберите аккаунт"
+accountSelectConfirm = "Выбрать"
+accountSelectCancel = "Отмена"
+
+[ejs.settings]
+navHeaderText = "Настройки"
+navAccount = "Аккаунт"
+navMinecraft = "Minecraft"
+navMods = "Моды"
+navJava = "Java"
+navLauncher = "Лаунчер"
+navAbout = "О программе"
+navUpdates = "Обновления"
+navDone = "Готово"
+tabAccountHeaderText = "Настройки аккаунта"
+tabAccountHeaderDesc = "Добавьте новые аккаунты или управляйте существующими."
+microsoftAccount = "Microsoft"
+addMicrosoftAccount = "+ Добавить аккаунт Microsoft"
+mojangAccount = "Mojang"
+addMojangAccount = "+ Добавить аккаунт Mojang"
+offlineAccount = "Офлайн"
+addOfflineAccount = "+ Добавить офлайн-аккаунт"
+minecraftTabHeaderText = "Настройки Minecraft"
+minecraftTabHeaderDesc = "Параметры запуска игры."
+gameResolutionTitle = "Разрешение"
+launchFullscreenTitle = "Запускать в полноэкранном режиме."
+autoConnectTitle = "Автоматически подключаться к серверу при запуске."
+launchDetachedTitle = "Запускать игру отдельно от лаунчера."
+launchDetachedDesc = "Если игра не отвязана, закрытие лаунчера закроет и игру."
+tabModsHeaderText = "Настройки модов"
+tabModsHeaderDesc = "Включать и отключать моды."
+switchServerButton = "Сменить"
+requiredMods = "Обязательные моды"
+optionalMods = "Дополнительные моды"
+dropinMods = "Моды в папке"
+addMods = "Добавить моды"
+dropinRefreshNote = "(F5 — обновить)"
+shaderpacks = "Шейдерпаки"
+shaderpackDesc = "Включение и отключение шейдеров. Они требуют мощного ПК. Сюда можно добавить свои паки."
+selectShaderpack = "Выбрать шейдерпак"
+tabJavaHeaderText = "Настройки Java"
+tabJavaHeaderDesc = "Управление Java (для опытных пользователей)."
+memoryTitle = "Память"
+maxRAM = "Максимум RAM"
+minRAM = "Минимум RAM"
+memoryDesc = "Рекомендуется не менее 3 ГБ RAM. Одинаковые минимум и максимум могут снизить лаги."
+memoryTotalTitle = "Всего"
+memoryAvailableTitle = "Доступно"
+javaExecutableTitle = "Исполняемый файл Java"
+javaExecSelDialogTitle = "Выберите java.exe"
+javaExecSelButtonText = "Выбрать файл"
+javaExecDesc = "Исполняемый файл Java проверяется перед запуском игры."
+javaPathDesc = "Путь должен заканчиваться на <strong>{pathSuffix}</strong>."
+jvmOptsTitle = "Доп. параметры JVM"
+jvmOptsDesc = "Параметры для JVM при запуске. Не указывайте <em>-Xms</em> и <em>-Xmx</em>."
+launcherTabHeaderText = "Настройки лаунчера"
+launcherTabHeaderDesc = "Параметры самого лаунчера."
+allowPrereleaseTitle = "Разрешить пре-релизные обновления."
+allowPrereleaseDesc = "Пре-релизы могут быть не до конца протестированы.<br>Если вы уже на пре-релизе, это всегда включено."
+dataDirectoryTitle = "Каталог данных"
+selectDataDirectory = "Выбрать каталог данных"
+chooseFolder = "Выбрать папку"
+dataDirectoryDesc = "Здесь хранятся игровые файлы и локальные установки Java.<br>Скриншоты и миры — в папке инстанса выбранного сервера."
+aboutTabHeaderText = "О программе"
+aboutTabHeaderDesc = "Информация и примечания к текущей версии."
+aboutTitle = "{appName}"
+stableRelease = "Стабильный релиз"
+versionText = "Версия "
+sourceGithubLink = "https://github.com/dscalzi/HeliosLauncher"
+supportLink = "https://github.com/dscalzi/HeliosLauncher/issues"
+sourceGithub = "Исходный код (GitHub)"
+support = "Поддержка"
+devToolsConsole = "Консоль DevTools"
+releaseNotes = "Примечания к выпуску"
+changelog = "Список изменений"
+noReleaseNotes = "Нет примечаний"
+viewReleaseNotes = "Примечания на GitHub"
+launcherUpdatesHeaderText = "Обновления лаунчера"
+launcherUpdatesHeaderDesc = "Скачивание, установка и просмотр обновлений."
+checkForUpdates = "Проверить обновления"
+whatsNew = "Что нового"
+updateReleaseNotes = "Примечания к обновлению"
+
+[ejs.waiting]
+waitingText = "Ожидание Microsoft.."
+
+[ejs.welcome]
+continueButton = "ПРОДОЛЖИТЬ"
+
+
+[js.discord]
+waiting = "Ожидание клиента.."
+state = "Сервер: {shortId}"
+
+[js.index]
+microsoftLoginTitle = "Вход Microsoft"
+microsoftLogoutTitle = "Выход Microsoft"
+
+[js.login]
+login = "ВОЙТИ"
+loggingIn = "ВХОД.."
+success = "ГОТОВО"
+tryAgain = "Повторить"
+
+[js.loginOffline]
+loginButtonText = "ИГРАТЬ ОФЛАЙН"
+loggingIn = "ОФЛАЙН-ЗАПУСК.."
+
+[js.loginOffline.error]
+requiredUsername = "Введите имя пользователя"
+invalidUsername = "Имя: 3–16 символов — буквы, цифры и подчёркивание"
+generic = "Произошла ошибка. Попробуйте снова."
+
+[js.login.error]
+invalidValue = "* Неверное значение"
+requiredValue = "* Обязательно"
+
+[js.login.error.unknown]
+title = "Неизвестная ошибка входа"
+desc = "Произошла неизвестная ошибка. Подробности в консоли."
+
+[js.landing.launch]
+pleaseWait = "Подождите.."
+failureTitle = "Ошибка запуска"
+failureText = "Подробности в консоли (CTRL + Shift + i)."
+okay = "ОК"
+
+[js.landing.selectedAccount]
+noAccountSelected = "Аккаунт не выбран"
+
+[js.landing.selectedServer]
+noSelection = "Сервер не выбран"
+loading = "Загрузка.."
+
+[js.landing.serverStatus]
+server = "СЕРВЕР"
+offline = "НЕ В СЕТИ"
+players = "ИГРОКИ"
+
+[js.landing.systemScan]
+checking = "Проверка системы.."
+noCompatibleJava = "Подходящая Java<br>не найдена"
+installJavaMessage = "Для запуска Minecraft нужна 64-битная Java {major}. Установить автоматически?"
+installJava = "Установить Java"
+installJavaManually = "Установить вручную"
+javaDownloadPrepare = "Подготовка загрузки Java.."
+javaDownloadFailureTitle = "Ошибка загрузки Java"
+javaDownloadFailureText = "Подробности в консоли (CTRL + Shift + i)."
+javaRequired = "Для запуска<br>нужна Java"
+javaRequiredMessage = 'Нужна корректная 64-битная Java {major}.<br><br>См. <a href="https://github.com/dscalzi/HeliosLauncher/wiki/Java-Management#manually-installing-a-valid-version-of-java">руководство по Java</a>.'
+javaRequiredDismiss = "Понятно"
+javaRequiredCancel = "Назад"
+
+[js.landing.downloadJava]
+findJdkFailure = "Не удалось найти дистрибутив OpenJDK."
+javaDownloadCorruptedError = "Неверная контрольная сумма JDK — файл может быть повреждён."
+extractingJava = "Распаковка Java"
+javaInstalled = "Java установлена!"
+
+[js.landing.dlAsync]
+loadingServerInfo = "Загрузка данных сервера.."
+fatalError = "Критическая ошибка"
+unableToLoadDistributionIndex = "Не удалось загрузить индекс дистрибутива. Подробности в консоли (CTRL + Shift + i)."
+pleaseWait = "Подождите.."
+errorDuringLaunchTitle = "Ошибка запуска"
+seeConsoleForDetails = "Подробности в консоли (CTRL + Shift + i)."
+validatingFileIntegrity = "Проверка целостности файлов.."
+errorDuringFileVerificationTitle = "Ошибка проверки файлов"
+downloadingFiles = "Загрузка файлов.."
+errorDuringFileDownloadTitle = "Ошибка загрузки файлов"
+preparingToLaunch = "Подготовка к запуску.."
+launchingGame = "Запуск игры.."
+launchWrapperNotDownloaded = "Основной файл LaunchWrapper не скачался — игра не запустится.<br><br>Временно отключите антивирус и запустите снова.<br><br>По возможности <a href=\"https://github.com/dscalzi/HeliosLauncher/issues\">сообщите о проблеме</a> и укажите ваш антивирус."
+doneEnjoyServer = "Готово. Приятной игры!"
+checkConsoleForDetails = "Смотрите консоль (CTRL + Shift + i)."
+
+[js.landing.news]
+checking = "Проверка новостей.."
+
+[js.landing.discord]
+loading = "Загрузка игры.."
+joining = "Подключение к серверу.."
+joined = "В игре!"
+
+[js.overlay]
+dismiss = "Закрыть"
+
+[js.settings.fileSelectors]
+executables = "Исполняемые файлы"
+allFiles = "Все файлы"
+
+[js.settings.mstfLogin]
+errorTitle = "Что-то пошло не так"
+errorMessage = "Ошибка входа Microsoft. Попробуйте снова."
+okButton = "ОК"
+
+[js.settings.mstfLogout]
+errorTitle = "Что-то пошло не так"
+errorMessage = "Ошибка выхода из Microsoft. Попробуйте снова."
+okButton = "ОК"
+
+[js.settings.authAccountSelect]
+selectButton = "Выбрать аккаунт"
+selectedButton = "Выбран &#10004;"
+
+[js.settings.authAccountLogout]
+lastAccountWarningTitle = "Внимание<br>Это последний аккаунт"
+lastAccountWarningMessage = "Для работы лаунчера нужен хотя бы один аккаунт. После выхода потребуется войти снова.<br><br>Выйти?"
+confirmButton = "Да, выйти"
+cancelButton = "Отмена"
+
+[js.settings.authAccountPopulate]
+username = "Имя пользователя"
+uuid = "UUID"
+selectAccount = "Выбрать аккаунт"
+selectedAccount = "Выбран ✓"
+logout = "Выйти"
+
+[js.settings.dropinMods]
+removeButton = "Удалить"
+deleteFailedTitle = "Не удалось удалить<br>мод {fullName}"
+deleteFailedMessage = "Закройте игру и повторите."
+failedToggleTitle = "Не удалось переключить<br>моды"
+okButton = "ОК"
+
+[js.settings.serverListing]
+mainServer = "Основной сервер"
+
+[js.settings.java]
+selectedJava = "Выбрано: Java {version} ({vendor})"
+invalidSelection = "Неверный выбор"
+requiresJava = "Требуется Java {major} x64."
+availableOptions = "Доступные варианты Java {major} (HotSpot VM)"
+
+[js.settings.about]
+preReleaseTitle = "Пре-релиз"
+stableReleaseTitle = "Стабильный релиз"
+releaseNotesFailed = "Не удалось загрузить примечания."
+
+[js.settings.updates]
+newReleaseTitle = "Доступен новый релиз"
+newPreReleaseTitle = "Доступен новый пре-релиз"
+downloadingButton = "Загрузка.."
+downloadButton = 'Скачать с GitHub<span style="font-size: 10px;color: gray;text-shadow: none !important;">Закройте лаунчер и запустите установщик.</span>'
+latestVersionTitle = "Установлена последняя версия"
+checkForUpdatesButton = "Проверить обновления"
+checkingForUpdatesButton = "Проверка.."
+
+[js.settings.msftLogin]
+errorTitle = "Ошибка входа Microsoft"
+errorMessage = "Не удалось авторизовать аккаунт Microsoft. Попробуйте снова."
+okButton = "ОК"
+
+[js.uibinder.startup]
+fatalErrorTitle = "Критическая ошибка: индекс дистрибутива"
+fatalErrorMessage = "Не удалось скачать индекс дистрибутива, локальной копии нет.<br><br>Индекс нужен для списка серверов. Проверьте интернет и перезапустите лаунчер."
+closeButton = "Закрыть"
+
+[js.uibinder.validateAccount]
+failedMessageTitle = "Не удалось обновить вход"
+failedMessage = "Не удалось обновить сессию для <strong>{account}</strong>. Выберите другой аккаунт или войдите снова."
+failedMessageSelectAnotherAccount = "Не удалось обновить сессию для <strong>{account}</strong>. Войдите снова."
+loginButton = "Войти"
+selectAnotherAccountButton = "Другой аккаунт"
+
+[js.uicore.autoUpdate]
+checkingForUpdateButton = "Проверка обновлений..."
+installNowButton = "Установить сейчас"
+checkForUpdatesButton = "Проверить обновления"
+
+[js.auth.microsoft.error]
+noProfileTitle = "Ошибка входа:<br>нет профиля Minecraft"
+noProfileDesc = "У аккаунта Microsoft ещё нет профиля Minecraft. После покупки или Game Pass настройте профиль на <a href=\"https://minecraft.net/\">Minecraft.net</a>.<br><br>Купить игру можно там же."
+noXboxAccountTitle = "Ошибка входа:<br>нет Xbox-аккаунта"
+noXboxAccountDesc = "К Microsoft-аккаунту не привязан Xbox."
+xblBannedTitle = "Ошибка входа:<br>Xbox Live недоступен"
+xblBannedDesc = "Регион аккаунта не поддерживает Xbox Live или доступ заблокирован."
+under18Title = "Ошибка входа:<br>нужно согласие родителя"
+under18Desc = "Аккаунты младше 18 лет должны быть в семье Microsoft Family."
+unknownTitle = "Неизвестная ошибка входа"
+unknownDesc = "Произошла неизвестная ошибка. См. консоль."
+
+[js.auth.mojang.error]
+methodNotAllowedTitle = "Внутренняя ошибка:<br>Method Not Allowed"
+methodNotAllowedDesc = "Метод не разрешён. Сообщите об ошибке."
+notFoundTitle = "Внутренняя ошибка:<br>Not Found"
+notFoundDesc = "Точка входа авторизации не найдена. Сообщите об ошибке."
+accountMigratedTitle = "Ошибка входа:<br>аккаунт перенесён"
+accountMigratedDesc = "Этот аккаунт перенесён. Войдите, используя email вместо старого имени."
+invalidCredentialsTitle = "Ошибка входа:<br>неверные данные"
+invalidCredentialsDesc = "Неверный email или пароль."
+tooManyAttemptsTitle = "Ошибка входа:<br>слишком много попыток"
+tooManyAttemptsDesc = "Слишком много попыток входа. Попробуйте позже."
+invalidTokenTitle = "Ошибка входа:<br>недействительный токен"
+invalidTokenDesc = "Токен доступа недействителен."
+tokenHasProfileTitle = "Ошибка входа:<br>у токена уже есть профиль"
+tokenHasProfileDesc = "Токен уже привязан к профилю. Выбор профиля не реализован."
+credentialsMissingTitle = "Ошибка входа:<br>нет учётных данных"
+credentialsMissingDesc = "Не указаны логин/пароль или пароль короче 3 символов."
+invalidSaltVersionTitle = "Ошибка входа:<br>неверная версия salt"
+invalidSaltVersionDesc = "Неверная версия salt."
+unsupportedMediaTypeTitle = "Внутренняя ошибка:<br>Unsupported Media Type"
+unsupportedMediaTypeDesc = "Неподдерживаемый тип данных. Сообщите об ошибке."
+accountGoneTitle = "Ошибка входа:<br>аккаунт перенесён"
+accountGoneDesc = "Аккаунт перенесён на Microsoft. Войдите через Microsoft."
+unreachableTitle = "Ошибка входа:<br>сервер недоступен"
+unreachableDesc = "Не удаётся связаться с серверами авторизации. Проверьте интернет."
+gameNotPurchasedTitle = "Ошибка входа:<br>игра не куплена"
+gameNotPurchasedDesc = "На этом аккаунте нет купленной копии Minecraft. Купить можно на <a href=\"https://minecraft.net/\">Minecraft.net</a>"
+unknownErrorTitle = "Неизвестная ошибка входа"
+unknownErrorDesc = "Произошла неизвестная ошибка. См. консоль."

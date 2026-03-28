@@ -33,10 +33,10 @@ exports.queryEJS = function(id, placeHolders){
 }
 
 exports.setupLanguage = function(){
-    // Load Language Files
+    // Base strings (fallback for any missing keys in overlays)
     exports.loadLanguage('en_US')
-    // Uncomment this when translations are ready
-    //exports.loadLanguage('xx_XX')
+    // Russian overrides merged on top
+    exports.loadLanguage('ru_RU')
 
     // Load Custom Language File for Launcher Customizer
     exports.loadLanguage('_custom')
