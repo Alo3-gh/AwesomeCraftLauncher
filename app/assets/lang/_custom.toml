@@ -12,7 +12,7 @@ mediaDiscordURL = "https://discord.gg/playwithserch"
 
 [ejs.settings]
 sourceGithubLink = "https://github.com/Alo3-gh/AwesomeCraftLauncher"
-supportLink = "https://github.com/Alo3-gh/AwesomeCraftLauncher/issues"
+supportLink = "https://discord.gg/playwithserch"
 
 [ejs.welcome]
 welcomeHeader = "WELCOME TO AWESOMECRAFT"
