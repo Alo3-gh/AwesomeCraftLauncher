@@ -148,10 +148,34 @@ exports.load = function(){
         }
         if(doValidate){
             config = validateKeySet(DEFAULT_CONFIG, config)
+            if(migrateRemoveOfflineAccounts(config)) {
+                logger.info('Removed legacy offline accounts from the auth database.')
+            }
             exports.save()
         }
     }
     logger.info('Successfully Loaded')
+}
+
+/**
+ * Offline accounts were replaced by Ely.by. Drop them and fix selection if needed.
+ * @param {object} cfg
+ * @returns {boolean} true if the auth database was modified
+ */
+function migrateRemoveOfflineAccounts(cfg) {
+    const db = cfg.authenticationDatabase
+    let changed = false
+    for(const k of Object.keys(db)) {
+        if(db[k].type === 'offline') {
+            delete db[k]
+            changed = true
+        }
+    }
+    if(cfg.selectedAccount != null && db[cfg.selectedAccount] == null) {
+        cfg.selectedAccount = Object.keys(db)[0] || null
+        changed = true
+    }
+    return changed
 }
 
 /**
@@ -350,19 +374,32 @@ exports.addMojangAuthAccount = function(uuid, accessToken, username, displayName
 }
 
 /**
- * Adds an offline (singleplayer-style) account to the database.
- * Offline accounts never require remote validation.
+ * Update the access token of an authenticated Ely.by account.
  *
- * @param {string} uuid The deterministic offline UUID.
- * @param {string} username The username.
- * @param {string} displayName The in game display name.
- * @returns {Object} The created offline auth account.
+ * @param {string} uuid
+ * @param {string} accessToken
+ * @returns {Object}
  */
-exports.addOfflineAuthAccount = function(uuid, username, displayName){
+exports.updateElybyAuthAccount = function(uuid, accessToken){
+    config.authenticationDatabase[uuid].accessToken = accessToken
+    config.authenticationDatabase[uuid].type = 'elyby'
+    return config.authenticationDatabase[uuid]
+}
+
+/**
+ * Adds an authenticated Ely.by account (Yggdrasil-compatible session for authlib-injector).
+ *
+ * @param {string} uuid dashed profile UUID
+ * @param {string} accessToken
+ * @param {string} username login identifier (email or nickname)
+ * @param {string} displayName in-game name
+ * @returns {Object}
+ */
+exports.addElybyAuthAccount = function(uuid, accessToken, username, displayName){
     config.selectedAccount = uuid
     config.authenticationDatabase[uuid] = {
-        type: 'offline',
-        accessToken: '0',
+        type: 'elyby',
+        accessToken,
         username: username.trim(),
         uuid: uuid.trim(),
         displayName: displayName.trim()

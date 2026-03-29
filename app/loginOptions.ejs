@@ -15,11 +15,13 @@
                     </button>
                 </div>
                 <div class="loginOptionButtonContainer">
-                    <button id="loginOptionOffline" class="loginOptionButton">
-                        <span><%- lang('loginOptions.loginWithOffline') %></span>
+                    <button id="loginOptionElyby" class="loginOptionButton">
+                        <img src="assets/images/icons/elyby.svg" width="22" height="22" alt="Ely.by" style="object-fit:contain;">
+                        <span><%- lang('loginOptions.loginWithElyby') %></span>
                     </button>
                 </div>
-                <div class="loginOptionButtonContainer">
+                <%# Mojang login hidden — button kept in DOM for JS but not shown %>
+                <div class="loginOptionButtonContainer" style="display:none;">
                     <button id="loginOptionMojang" class="loginOptionButton">
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 9.677 9.667">
                             <path d="M-26.332-12.098h2.715c-1.357.18-2.574 1.23-2.715 2.633z" fill="#fff" />

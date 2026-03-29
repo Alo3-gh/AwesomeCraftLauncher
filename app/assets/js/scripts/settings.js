@@ -351,17 +351,20 @@ settingsNavDone.onclick = () => {
 const msftLoginLogger = LoggerUtil.getLogger('Microsoft Login')
 const msftLogoutLogger = LoggerUtil.getLogger('Microsoft Logout')
 
-// Bind the add mojang account button.
-document.getElementById('settingsAddMojangAccount').onclick = (e) => {
-    switchView(getCurrentView(), VIEWS.login, 500, 500, () => {
-        loginViewOnCancel = VIEWS.settings
-        loginViewOnSuccess = VIEWS.settings
-        loginCancelEnabled(true)
-    })
+// Bind the add mojang account button (button hidden in UI but kept for legacy support).
+const settingsAddMojangAccountBtn = document.getElementById('settingsAddMojangAccount')
+if(settingsAddMojangAccountBtn != null) {
+    settingsAddMojangAccountBtn.onclick = () => {
+        switchView(getCurrentView(), VIEWS.login, 500, 500, () => {
+            loginViewOnCancel = VIEWS.settings
+            loginViewOnSuccess = VIEWS.settings
+            loginCancelEnabled(true)
+        })
+    }
 }
 
-// Bind the add offline account button.
-document.getElementById('settingsAddOfflineAccount').onclick = (e) => {
+// Bind the add Ely.by account button.
+document.getElementById('settingsAddElybyAccount').onclick = () => {
     switchView(getCurrentView(), VIEWS.offlineLogin, 500, 500, () => {
         loginOfflineViewOnCancel = VIEWS.settings
         loginOfflineViewOnSuccess = VIEWS.settings
@@ -537,8 +540,8 @@ function processLogOut(val, isLastAccount){
             ipcRenderer.send(MSFT_OPCODE.OPEN_LOGOUT, uuid, isLastAccount)
         })
     } else {
-        const remover = targetAcc.type === 'offline'
-            ? AuthManager.removeOfflineAccount
+        const remover = targetAcc.type === 'elyby'
+            ? AuthManager.removeElybyAccount
             : AuthManager.removeMojangAccount
 
         remover(uuid).then(() => {
@@ -641,7 +644,7 @@ function refreshAuthAccountSelected(uuid){
 }
 
 const settingsCurrentMicrosoftAccounts = document.getElementById('settingsCurrentMicrosoftAccounts')
-const settingsCurrentOfflineAccounts = document.getElementById('settingsCurrentOfflineAccounts')
+const settingsCurrentElybyAccounts = document.getElementById('settingsCurrentElybyAccounts')
 const settingsCurrentMojangAccounts = document.getElementById('settingsCurrentMojangAccounts')
 
 /**
@@ -657,7 +660,7 @@ function populateAuthAccounts(){
     const selectedUUID = selectedAcc != null ? selectedAcc.uuid : null
 
     let microsoftAuthAccountStr = ''
-    let offlineAuthAccountStr = ''
+    let elybyAuthAccountStr = ''
     let mojangAuthAccountStr = ''
 
     authKeys.forEach((val) => {
@@ -689,8 +692,8 @@ function populateAuthAccounts(){
 
         if(acc.type === 'microsoft') {
             microsoftAuthAccountStr += accHtml
-        } else if(acc.type === 'offline') {
-            offlineAuthAccountStr += accHtml
+        } else if(acc.type === 'elyby') {
+            elybyAuthAccountStr += accHtml
         } else {
             mojangAuthAccountStr += accHtml
         }
@@ -698,15 +701,20 @@ function populateAuthAccounts(){
     })
 
     settingsCurrentMicrosoftAccounts.innerHTML = microsoftAuthAccountStr
-    settingsCurrentOfflineAccounts.innerHTML = offlineAuthAccountStr
+    settingsCurrentElybyAccounts.innerHTML = elybyAuthAccountStr
     settingsCurrentMojangAccounts.innerHTML = mojangAuthAccountStr
 
-    ;[settingsCurrentMicrosoftAccounts, settingsCurrentOfflineAccounts, settingsCurrentMojangAccounts].forEach((container) => {
+    ;[settingsCurrentMicrosoftAccounts, settingsCurrentElybyAccounts, settingsCurrentMojangAccounts].forEach((container) => {
         container.querySelectorAll('img.settingsAuthAccountImage').forEach((img) => {
             const row = img.closest('.settingsAuthAccount')
             const uuid = row != null ? row.getAttribute('uuid') : null
             if(uuid != null){
-                AvatarUrls.setImgSrcWithFallbacks(img, AvatarUrls.bodyImageUrls(uuid, 60))
+                const acc = ConfigManager.getAuthAccount(uuid)
+                if(acc && acc.type === 'elyby') {
+                    AvatarUrls.setElybyBodySrc(img, acc.displayName, 60)
+                } else {
+                    AvatarUrls.setImgSrcWithFallbacks(img, AvatarUrls.bodyImageUrlsForAccount(acc, 60))
+                }
             }
         })
     })

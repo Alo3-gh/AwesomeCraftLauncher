@@ -322,7 +322,12 @@ function populateAccountListings(){
     document.getElementById('accountSelectListScrollable').querySelectorAll('button.accountListing > img.accountListingHead').forEach((img) => {
         const uuid = img.parentElement.getAttribute('uuid')
         if(uuid != null){
-            AvatarUrls.setImgSrcWithFallbacks(img, AvatarUrls.headImageUrls(uuid, 40))
+            const acc = ConfigManager.getAuthAccount(uuid)
+            if(acc && acc.type === 'elyby') {
+                AvatarUrls.setElybyHeadSrc(img, acc.displayName, 40)
+            } else {
+                AvatarUrls.setImgSrcWithFallbacks(img, AvatarUrls.headImageUrlsForAccount(acc, 40))
+            }
         }
     })
 

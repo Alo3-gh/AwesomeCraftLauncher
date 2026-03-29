@@ -343,13 +343,25 @@ async function validateSelectedAccount(){
             setOverlayHandler(() => {
 
                 const isMicrosoft = selectedAcc.type === 'microsoft'
-                const isOffline = selectedAcc.type === 'offline'
+                const isElyby = selectedAcc.type === 'elyby'
 
                 if(isMicrosoft) {
                     // Empty for now
-                } else if(!isOffline) {
-                    // Mojang
-                    // For convenience, pre-populate the username of the account.
+                } else if(isElyby) {
+                    document.getElementById('loginOfflineUsername').value = selectedAcc.username
+                    const totpRow = document.getElementById('loginOfflineTotpRow')
+                    if(totpRow) {
+                        totpRow.style.display = 'none'
+                    }
+                    const totpIn = document.getElementById('loginOfflineTotp')
+                    if(totpIn) {
+                        totpIn.value = ''
+                    }
+                    const lp = document.getElementById('loginOfflinePassword')
+                    if(lp) {
+                        lp.value = ''
+                    }
+                } else {
                     document.getElementById('loginUsername').value = selectedAcc.username
                     validateEmail(selectedAcc.username)
                 }
@@ -370,9 +382,10 @@ async function validateSelectedAccount(){
                                 selectedAcc.microsoft.refresh_token,
                                 selectedAcc.microsoft.expires_at
                             )
-                        } else if(isOffline) {
-                            ConfigManager.addOfflineAuthAccount(
+                        } else if(isElyby) {
+                            ConfigManager.addElybyAuthAccount(
                                 selectedAcc.uuid,
+                                selectedAcc.accessToken,
                                 selectedAcc.username,
                                 selectedAcc.displayName
                             )

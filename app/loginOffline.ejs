@@ -8,7 +8,7 @@
 
     <div id="loginOfflineContent">
         <form id="loginOfflineForm">
-            <img id="loginOfflineImageSeal" src="assets/images/SealCircle.png"/>
+            <img id="loginOfflineImageSeal" src="assets/images/icons/elyby.svg"/>
             <span id="loginOfflineSubheader"><%- lang('loginOffline.loginSubheader') %></span>
 
             <div class="loginFieldContainer">
@@ -18,10 +18,40 @@
                     class="loginField"
                     type="text"
                     placeholder="<%- lang('loginOffline.usernamePlaceholder') %>"
-                    autocomplete="off"
+                    autocomplete="username"
                     spellcheck="false"
-                    maxlength="16"
+                    maxlength="254"
                 />
+            </div>
+
+            <div class="loginFieldContainer">
+                <span class="loginErrorSpan" id="loginOfflinePasswordError"><%- lang('loginOffline.passwordError') %></span>
+                <input
+                    id="loginOfflinePassword"
+                    class="loginField"
+                    type="password"
+                    placeholder="<%- lang('loginOffline.passwordPlaceholder') %>"
+                    autocomplete="current-password"
+                />
+            </div>
+
+            <div class="loginFieldContainer" id="loginOfflineTotpRow" style="display: none;">
+                <span class="loginErrorSpan" id="loginOfflineTotpError"><%- lang('loginOffline.totpError') %></span>
+                <input
+                    id="loginOfflineTotp"
+                    class="loginField"
+                    type="text"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    maxlength="8"
+                    placeholder="<%- lang('loginOffline.totpPlaceholder') %>"
+                    autocomplete="one-time-code"
+                />
+            </div>
+
+            <div id="loginOfflineRegisterRow">
+                <span id="loginOfflineRegisterText"><%- lang('loginOffline.noAccount') %></span>
+                <button id="loginOfflineRegisterButton" type="button"><%- lang('loginOffline.registerButton') %></button>
             </div>
 
             <button id="loginOfflineButton" disabled type="button">

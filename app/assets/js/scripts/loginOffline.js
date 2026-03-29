@@ -1,39 +1,76 @@
 /**
- * Script for loginOffline.ejs
- * Offline-account login by username only.
+ * Script for loginOffline.ejs — Ely.by account login (Yggdrasil-compatible).
  */
 
-// Elements
 const loginOfflineCancelContainer = document.getElementById('loginOfflineCancelContainer')
 const loginOfflineCancelButton = document.getElementById('loginOfflineCancelButton')
 const loginOfflineUsernameError = document.getElementById('loginOfflineUsernameError')
+const loginOfflinePasswordError = document.getElementById('loginOfflinePasswordError')
+const loginOfflineTotpError = document.getElementById('loginOfflineTotpError')
 const loginOfflineUsername = document.getElementById('loginOfflineUsername')
+const loginOfflinePassword = document.getElementById('loginOfflinePassword')
+const loginOfflineTotp = document.getElementById('loginOfflineTotp')
+const loginOfflineTotpRow = document.getElementById('loginOfflineTotpRow')
 const loginOfflineButton = document.getElementById('loginOfflineButton')
 const loginOfflineForm = document.getElementById('loginOfflineForm')
 
-// Control variables (set from loginOptions/settings)
 let loginOfflineViewOnSuccess = VIEWS.landing
 let loginOfflineViewOnCancel = VIEWS.loginOptions
 let loginOfflineViewCancelHandler
 
-// Validation regex: 3-16, letters/numbers/underscore.
-const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,16}$/
-
-function setError(value) {
+function setUsernameError(value) {
     loginOfflineUsernameError.innerHTML = value
-    loginOfflineUsernameError.style.opacity = 1
+    loginOfflineUsernameError.style.opacity = value ? 1 : 0
 }
 
-function clearError() {
-    loginOfflineUsernameError.innerHTML = ''
-    loginOfflineUsernameError.style.opacity = 0
+function setPasswordError(value) {
+    loginOfflinePasswordError.innerHTML = value
+    loginOfflinePasswordError.style.opacity = value ? 1 : 0
 }
 
-function validateUsername(value) {
-    const v = (value ?? '').trim()
-    if(v.length === 0) return Lang.queryJS('loginOffline.error.requiredUsername')
-    if(!USERNAME_REGEX.test(v)) return Lang.queryJS('loginOffline.error.invalidUsername')
+function setTotpError(value) {
+    loginOfflineTotpError.innerHTML = value
+    loginOfflineTotpError.style.opacity = value ? 1 : 0
+}
+
+function clearFieldErrors() {
+    setUsernameError('')
+    setPasswordError('')
+    setTotpError('')
+}
+
+function validateFields() {
+    const user = (loginOfflineUsername.value ?? '').trim()
+    const pass = loginOfflinePassword.value ?? ''
+    if(user.length === 0) {
+        return Lang.queryJS('loginOffline.error.requiredUsername')
+    }
+    if(pass.length === 0) {
+        return Lang.queryJS('loginOffline.error.requiredPassword')
+    }
+    if(loginOfflineTotpRow.style.display !== 'none') {
+        const t = loginOfflineTotp.value.trim()
+        if(t.length < 6) {
+            return Lang.queryJS('loginOffline.error.requiredTotp')
+        }
+    }
     return null
+}
+
+function applyFieldError(msg) {
+    if(!msg) {
+        clearFieldErrors()
+        return
+    }
+    if(msg === Lang.queryJS('loginOffline.error.requiredUsername')) {
+        setUsernameError(msg)
+    } else if(msg === Lang.queryJS('loginOffline.error.requiredPassword')) {
+        setPasswordError(msg)
+    } else if(msg === Lang.queryJS('loginOffline.error.requiredTotp')) {
+        setTotpError(msg)
+    } else {
+        setPasswordError(msg)
+    }
 }
 
 function loginOfflineDisabled(v) {
@@ -53,26 +90,26 @@ function loginOfflineCancelEnabled(v) {
 function loginOfflineLoading(v) {
     if(v) {
         loginOfflineButton.setAttribute('loading', true)
-        const btnText = Lang.queryJS('loginOffline.loggingIn')
         const label = document.getElementById('loginOfflineButtonLabel')
-        if(label) label.textContent = btnText
+        if(label) label.textContent = Lang.queryJS('loginOffline.loggingIn')
     } else {
         loginOfflineButton.removeAttribute('loading')
-        const btnText = Lang.queryJS('loginOffline.loginButtonText')
         const label = document.getElementById('loginOfflineButtonLabel')
-        if(label) label.textContent = btnText
+        if(label) label.textContent = Lang.queryJS('loginOffline.loginButtonText')
     }
 }
 
 function resetUI() {
     loginOfflineUsername.value = ''
+    loginOfflinePassword.value = ''
+    loginOfflineTotp.value = ''
+    loginOfflineTotpRow.style.display = 'none'
+    clearFieldErrors()
     loginOfflineDisabled(true)
-    clearError()
     loginOfflineLoading(false)
     loginOfflineCancelEnabled(false)
     loginOfflineViewCancelHandler = null
 
-    // Reset the button visual state (loader/checkmark).
     const btnContent = document.getElementById('loginOfflineButtonContent')
     const loader = btnContent?.querySelector('.offline-circle-loader')
     const checkmark = btnContent?.querySelector('.offline-checkmark')
@@ -80,33 +117,33 @@ function resetUI() {
     if(checkmark) checkmark.style.display = 'none'
 }
 
-// Enable submit only when input is valid.
+function recomputeButtonEnabled() {
+    const err = validateFields()
+    loginOfflineDisabled(err != null)
+}
+
 loginOfflineUsername.addEventListener('input', () => {
-    const err = validateUsername(loginOfflineUsername.value)
-    if(err) {
-        setError(err)
-        loginOfflineDisabled(true)
-    } else {
-        clearError()
-        loginOfflineDisabled(false)
-    }
+    clearFieldErrors()
+    recomputeButtonEnabled()
 })
 
-loginOfflineUsername.addEventListener('focusout', () => {
-    const err = validateUsername(loginOfflineUsername.value)
-    if(err) {
-        setError(err)
-        loginOfflineDisabled(true)
-    } else {
-        clearError()
-        loginOfflineDisabled(false)
-    }
+loginOfflinePassword.addEventListener('input', () => {
+    clearFieldErrors()
+    recomputeButtonEnabled()
 })
 
-// Disable default form behavior.
-loginOfflineForm.onsubmit = () => { return false }
+loginOfflineTotp.addEventListener('input', () => {
+    setTotpError('')
+    recomputeButtonEnabled()
+})
 
-loginOfflineCancelButton.onclick = (e) => {
+loginOfflineForm.onsubmit = () => false
+
+document.getElementById('loginOfflineRegisterButton').addEventListener('click', () => {
+    require('electron').shell.openExternal('https://account.ely.by/register')
+})
+
+loginOfflineCancelButton.onclick = () => {
     switchView(getCurrentView(), loginOfflineViewOnCancel, 500, 500, () => {
         resetUI()
         if(loginOfflineViewCancelHandler != null) {
@@ -117,22 +154,26 @@ loginOfflineCancelButton.onclick = (e) => {
 }
 
 loginOfflineButton.addEventListener('click', async () => {
-    const err = validateUsername(loginOfflineUsername.value)
+    const err = validateFields()
     if(err) {
-        setError(err)
-        loginOfflineDisabled(true)
+        applyFieldError(err)
         return
     }
 
     loginOfflineDisabled(true)
     loginOfflineLoading(true)
+    clearFieldErrors()
+
+    const username = loginOfflineUsername.value.trim()
+    let password = loginOfflinePassword.value
+    if(loginOfflineTotpRow.style.display !== 'none') {
+        password = `${password}:${loginOfflineTotp.value.trim()}`
+    }
 
     try {
-        const username = loginOfflineUsername.value.trim()
-        const value = await AuthManager.addOfflineAccount(username)
+        const value = await AuthManager.addElybyAccount(username, password)
         updateSelectedAccount(value)
 
-        // Mark success on the offline button only.
         const btnContent = document.getElementById('loginOfflineButtonContent')
         const loader = btnContent.querySelector('.offline-circle-loader')
         const checkmark = btnContent.querySelector('.offline-checkmark')
@@ -145,28 +186,40 @@ loginOfflineButton.addEventListener('click', async () => {
                     await prepareSettings()
                 }
 
-                // Reset for next usage.
                 loginOfflineViewOnSuccess = VIEWS.landing
                 loginOfflineCancelEnabled(false)
                 loginOfflineViewCancelHandler = null
-                clearError()
-                loginOfflineLoading(false)
-                loginOfflineDisabled(true)
-                loginOfflineUsername.value = ''
+                resetUI()
 
                 if(loader) loader.classList.remove('load-complete')
                 if(checkmark) checkmark.style.display = 'none'
             })
         }, 500)
     } catch (displayableError) {
-        // Keep UI responsive; show a generic error in overlay.
         loginOfflineLoading(false)
-        loginOfflineDisabled(false)
-        const errMsg =
-            displayableError?.displayable ??
-            displayableError?.message ??
-            Lang.queryJS('loginOffline.error.generic')
-        setError(typeof errMsg === 'string' ? errMsg : String(errMsg))
+
+        if(isDisplayableError(displayableError) && displayableError.needsTwoFactor) {
+            loginOfflineTotpRow.style.display = 'block'
+            loginOfflineTotp.value = ''
+            setTotpError('')
+            loginOfflineDisabled(false)
+            recomputeButtonEnabled()
+            return
+        }
+
+        let actualDisplayableError
+        if(isDisplayableError(displayableError)) {
+            actualDisplayableError = displayableError
+        } else {
+            actualDisplayableError = Lang.queryJS('login.error.unknown')
+        }
+
+        setOverlayContent(actualDisplayableError.title, actualDisplayableError.desc, Lang.queryJS('login.tryAgain'))
+        setOverlayHandler(() => {
+            toggleOverlay(false)
+            loginOfflineDisabled(false)
+            recomputeButtonEnabled()
+        })
+        toggleOverlay(true)
     }
 })
-

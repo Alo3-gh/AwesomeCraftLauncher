@@ -9,8 +9,19 @@ const os                    = require('os')
 const path                  = require('path')
 
 const ConfigManager            = require('./configmanager')
+const ElybyPaths               = require('./elyby/elybyPaths')
 
 const logger = LoggerUtil.getLogger('ProcessBuilder')
+
+function elybyJavaAgentArg() {
+    const jar = ElybyPaths.getAuthlibInjectorJarPath()
+    if(!fs.pathExistsSync(jar)) {
+        return null
+    }
+    const needsQuote = /[\s&]/.test(jar)
+    const pathPart = needsQuote ? `"${jar}"` : jar
+    return `-javaagent:${pathPart}=ely.by`
+}
 
 
 /**
@@ -366,6 +377,11 @@ class ProcessBuilder {
 
         let args = []
 
+        const agent = this.authUser.type === 'elyby' ? elybyJavaAgentArg() : null
+        if(agent != null) {
+            args.push(agent)
+        }
+
         // Classpath Argument
         args.push('-cp')
         args.push(this.classpathArg(mods, tempNativePath).join(ProcessBuilder.getClasspathSeparator()))
@@ -405,6 +421,11 @@ class ProcessBuilder {
 
         // JVM Arguments First
         let args = this.vanillaManifest.arguments.jvm
+
+        const agent113 = this.authUser.type === 'elyby' ? elybyJavaAgentArg() : null
+        if(agent113 != null) {
+            args = [agent113].concat(args)
+        }
 
         // Debug securejarhandler
         // args.push('-Dbsl.debug=true')
@@ -512,7 +533,7 @@ class ProcessBuilder {
                         case 'user_type':
                             val = this.authUser.type === 'microsoft'
                                 ? 'msa'
-                                : (this.authUser.type === 'offline' ? 'legacy' : 'mojang')
+                                : 'mojang'
                             break
                         case 'version_type':
                             val = this.vanillaManifest.type
@@ -598,7 +619,7 @@ class ProcessBuilder {
                     case 'user_type':
                         val = this.authUser.type === 'microsoft'
                             ? 'msa'
-                            : (this.authUser.type === 'offline' ? 'legacy' : 'mojang')
+                            : 'mojang'
                         break
                     case 'user_properties': // 1.8.9 and below.
                         val = '{}'

@@ -15,6 +15,7 @@ const { RestResponseStatus } = require('helios-core/common')
 const { MojangRestAPI, MojangErrorCode } = require('helios-core/mojang')
 const { MicrosoftAuth, MicrosoftErrorCode } = require('helios-core/microsoft')
 const { AZURE_CLIENT_ID }    = require('./ipcconstants')
+const ElybyAuthApi           = require('./elyby/elybyAuthApi')
 const Lang = require('./langloader')
 const crypto = require('crypto')
 
@@ -129,6 +130,71 @@ function mojangErrorDisplayable(errorCode) {
     }
 }
 
+const TWO_FACTOR_MSG = 'Account protected with two factor auth.'
+const INVALID_TOTP_HINT = 'Invalid credentials. Invalid email or password.'
+
+function elybyErrorDisplayable(statusCode, body, networkMessage) {
+    if(networkMessage) {
+        return {
+            title: Lang.queryJS('auth.elyby.error.unreachableTitle'),
+            desc: Lang.queryJS('auth.elyby.error.unreachableDesc')
+        }
+    }
+    const err = body && body.error
+    const msg = (body && body.errorMessage) || ''
+
+    if(statusCode === 404) {
+        return {
+            title: Lang.queryJS('auth.elyby.error.notFoundTitle'),
+            desc: Lang.queryJS('auth.elyby.error.notFoundDesc')
+        }
+    }
+
+    if(err === 'IllegalArgumentException') {
+        return {
+            title: Lang.queryJS('auth.elyby.error.badRequestTitle'),
+            desc: Lang.queryJS('auth.elyby.error.badRequestDesc')
+        }
+    }
+
+    if(err === 'ForbiddenOperationException') {
+        if(msg.includes(TWO_FACTOR_MSG)) {
+            return {
+                title: Lang.queryJS('auth.elyby.error.twoFactorTitle'),
+                desc: Lang.queryJS('auth.elyby.error.twoFactorDesc'),
+                needsTwoFactor: true
+            }
+        }
+        if(msg.includes(INVALID_TOTP_HINT)) {
+            return {
+                title: Lang.queryJS('auth.elyby.error.invalidTotpTitle'),
+                desc: Lang.queryJS('auth.elyby.error.invalidTotpDesc')
+            }
+        }
+        if(/invalid credential/i.test(msg) || /invalid email or password/i.test(msg)) {
+            return {
+                title: Lang.queryJS('auth.elyby.error.invalidCredentialsTitle'),
+                desc: Lang.queryJS('auth.elyby.error.invalidCredentialsDesc')
+            }
+        }
+        if(/token expired/i.test(msg) || /invalid token/i.test(msg)) {
+            return {
+                title: Lang.queryJS('auth.elyby.error.invalidTokenTitle'),
+                desc: Lang.queryJS('auth.elyby.error.invalidTokenDesc')
+            }
+        }
+        return {
+            title: Lang.queryJS('auth.elyby.error.forbiddenTitle'),
+            desc: msg || Lang.queryJS('auth.elyby.error.forbiddenDesc')
+        }
+    }
+
+    return {
+        title: Lang.queryJS('auth.elyby.error.unknownTitle'),
+        desc: msg || Lang.queryJS('auth.elyby.error.unknownDesc')
+    }
+}
+
 // Functions
 
 /**
@@ -168,45 +234,52 @@ exports.addMojangAccount = async function(username, password) {
     }
 }
 
-/**
- * Create a deterministic UUID compatible with Minecraft offline UUIDs.
- * Algorithm: uuid = MD5("OfflinePlayer:" + username) + UUID version/variant bits.
- *
- * @param {string} username
- * @returns {string} UUID with hyphens
- */
-function generateOfflineUUID(username) {
-    const md5 = crypto.createHash('md5')
-        .update('OfflinePlayer:' + username, 'utf8')
-        .digest('hex')
-
-    const part1 = md5.substring(0, 8)
-    const part2 = md5.substring(8, 12)
-
-    // version 3 => bits 12-15 = 0011
-    const part3 = '3' + md5.substring(13, 16)
-
-    // variant => bits 6-7 = 10
-    const part4a = (parseInt(md5.substring(16, 18), 16) & 0x3f) | 0x80
-    const part4 = part4a.toString(16).padStart(2, '0') + md5.substring(18, 20)
-
-    const part5 = md5.substring(20, 32)
-
-    return [part1, part2, part3, part4, part5].join('-')
+function ensureClientToken() {
+    let ct = ConfigManager.getClientToken()
+    if(ct == null || ct === '') {
+        ct = crypto.randomBytes(16).toString('hex')
+        ConfigManager.setClientToken(ct)
+    }
+    return ct
 }
 
 /**
- * Add an offline account.
- * Offline accounts do not require remote validation.
+ * Add an Ely.by account (password may include ":totp" for 2FA per Ely.by docs).
  *
- * @param {string} username
- * @returns {Object} The created offline auth account
+ * @param {string} username email or nickname
+ * @param {string} password password or "password:totp"
+ * @returns {Promise<Object>}
  */
-exports.addOfflineAccount = async function(username) {
-    const uuid = generateOfflineUUID(username)
-    const authData = ConfigManager.addOfflineAuthAccount(uuid, username, username)
-    ConfigManager.save()
-    return authData
+exports.addElybyAccount = async function(username, password) {
+    try {
+        const clientToken = ensureClientToken()
+        const res = await ElybyAuthApi.authenticate(username.trim(), password, clientToken)
+
+        if(res.statusCode === 200 && res.body && res.body.accessToken && res.body.selectedProfile) {
+            const sp = res.body.selectedProfile
+            const uuid = ElybyAuthApi.normalizeProfileUuid(sp.id)
+            if(res.body.clientToken && ConfigManager.getClientToken() !== res.body.clientToken) {
+                ConfigManager.setClientToken(res.body.clientToken)
+            }
+            const ret = ConfigManager.addElybyAuthAccount(
+                uuid,
+                res.body.accessToken,
+                username.trim(),
+                sp.name
+            )
+            ConfigManager.save()
+            return ret
+        }
+
+        if(res.statusCode === 401 && res.body) {
+            return Promise.reject(elybyErrorDisplayable(res.statusCode, res.body, res.networkMessage))
+        }
+
+        return Promise.reject(elybyErrorDisplayable(res.statusCode, res.body, res.networkMessage))
+    } catch (err) {
+        log.error(err)
+        return Promise.reject(elybyErrorDisplayable(0, null, err.message))
+    }
 }
 
 const AUTH_MODE = { FULL: 0, MS_REFRESH: 1, MC_REFRESH: 2 }
@@ -334,19 +407,28 @@ exports.removeMojangAccount = async function(uuid){
 }
 
 /**
- * Remove an offline account. No remote calls are made.
+ * Remove an Ely.by account: invalidate the session token, then drop local storage.
  *
  * @param {string} uuid
  * @returns {Promise<void>}
  */
-exports.removeOfflineAccount = async function(uuid){
+exports.removeElybyAccount = async function(uuid){
     try {
+        const authAcc = ConfigManager.getAuthAccount(uuid)
+        const ct = ConfigManager.getClientToken()
+        await ElybyAuthApi.invalidate(authAcc.accessToken, ct || '')
         ConfigManager.removeAuthAccount(uuid)
         ConfigManager.save()
         return Promise.resolve()
     } catch (err){
-        log.error('Error while removing offline account', err)
-        return Promise.reject(err)
+        log.error('Error while removing Ely.by account', err)
+        try {
+            ConfigManager.removeAuthAccount(uuid)
+            ConfigManager.save()
+        } catch (e2) {
+            log.error(e2)
+        }
+        return Promise.resolve()
     }
 }
 
@@ -466,6 +548,32 @@ async function validateSelectedMicrosoftAccount(){
     }
 }
 
+async function validateSelectedElybyAccount(){
+    const current = ConfigManager.getSelectedAccount()
+    const ct = ensureClientToken()
+
+    const v = await ElybyAuthApi.validate(current.accessToken)
+    const ok = v.statusCode === 200 || v.statusCode === 204
+    if(ok) {
+        log.info('Ely.by access token validated.')
+        return true
+    }
+
+    const refresh = await ElybyAuthApi.refresh(current.accessToken, ct)
+    if(refresh.statusCode === 200 && refresh.body && refresh.body.accessToken) {
+        ConfigManager.updateElybyAuthAccount(current.uuid, refresh.body.accessToken)
+        if(refresh.body.clientToken) {
+            ConfigManager.setClientToken(refresh.body.clientToken)
+        }
+        ConfigManager.save()
+        log.info('Ely.by access token refreshed.')
+        return true
+    }
+
+    log.error('Ely.by validate/refresh failed', refresh.statusCode, refresh.body)
+    return false
+}
+
 /**
  * Validate the selected auth account.
  * 
@@ -475,13 +583,11 @@ async function validateSelectedMicrosoftAccount(){
 exports.validateSelected = async function(){
     const current = ConfigManager.getSelectedAccount()
 
-    if(current.type === 'offline') {
-        // Offline accounts never require remote validation.
-        return true
-    } else if(current.type === 'microsoft') {
+    if(current.type === 'microsoft') {
         return await validateSelectedMicrosoftAccount()
-    } else {
-        return await validateSelectedMojangAccount()
     }
-    
+    if(current.type === 'elyby') {
+        return await validateSelectedElybyAccount()
+    }
+    return await validateSelectedMojangAccount()
 }

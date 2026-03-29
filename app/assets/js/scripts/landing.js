@@ -30,6 +30,7 @@ const {
 // Internal Requirements
 const DiscordWrapper          = require('./assets/js/discordwrapper')
 const ProcessBuilder          = require('./assets/js/processbuilder')
+const ElybyPaths              = require('./assets/js/elyby/elybyPaths')
 var AvatarUrls = (function(){
     const p = require('path')
     try {
@@ -158,7 +159,11 @@ function updateSelectedAccount(authUser){
             username = authUser.displayName
         }
         if(authUser.uuid != null){
-            AvatarUrls.setElementBackgroundImageWithFallbacks(avatarEl, AvatarUrls.bodyRightBackgroundUrls(authUser.uuid))
+            if(authUser.type === 'elyby') {
+                AvatarUrls.setElybyBackgroundSrc(avatarEl, authUser.displayName)
+            } else {
+                AvatarUrls.setElementBackgroundImageWithFallbacks(avatarEl, AvatarUrls.bodyRightBackgroundUrlsForAccount(authUser))
+            }
         } else {
             avatarEl.style.backgroundImage = 'none'
         }
@@ -483,6 +488,15 @@ async function dlAsync(login = true) {
     if(login) {
         if(ConfigManager.getSelectedAccount() == null){
             loggerLanding.error('You must be logged into an account.')
+            return
+        }
+        const selAcc = ConfigManager.getSelectedAccount()
+        if(selAcc.type === 'elyby' && !ElybyPaths.isAuthlibInjectorAvailable()) {
+            loggerLaunchSuite.error('authlib-injector.jar missing; cannot launch with Ely.by.')
+            showLaunchFailure(
+                Lang.queryJS('landing.dlAsync.errorDuringLaunchTitle'),
+                Lang.queryJS('landing.dlAsync.authlibInjectorMissing')
+            )
             return
         }
     }
