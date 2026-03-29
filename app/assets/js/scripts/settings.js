@@ -3,6 +3,15 @@ const os     = require('os')
 const semver = require('semver')
 
 const DropinModUtil  = require('./assets/js/dropinmodutil')
+// var + IIFE: avoid const AvatarUrls (shared renderer scope) and avoid duplicate const path (uibinder.js already requires 'path').
+var AvatarUrls = (function(){
+    const p = require('path')
+    try {
+        return require(p.join(__dirname, '..', 'avatarurls'))
+    } catch (err) {
+        return require(p.join(__dirname, 'assets', 'js', 'avatarurls'))
+    }
+})()
 const { MSFT_OPCODE, MSFT_REPLY_TYPE, MSFT_ERROR } = require('./assets/js/ipcconstants')
 
 const settingsState = {
@@ -656,7 +665,7 @@ function populateAuthAccounts(){
 
         const accHtml = `<div class="settingsAuthAccount" uuid="${acc.uuid}">
             <div class="settingsAuthAccountLeft">
-                <img class="settingsAuthAccountImage" alt="${acc.displayName}" src="https://mc-heads.net/body/${acc.uuid}/60">
+                <img class="settingsAuthAccountImage" alt="${acc.displayName}">
             </div>
             <div class="settingsAuthAccountRight">
                 <div class="settingsAuthAccountDetails">
@@ -691,6 +700,16 @@ function populateAuthAccounts(){
     settingsCurrentMicrosoftAccounts.innerHTML = microsoftAuthAccountStr
     settingsCurrentOfflineAccounts.innerHTML = offlineAuthAccountStr
     settingsCurrentMojangAccounts.innerHTML = mojangAuthAccountStr
+
+    ;[settingsCurrentMicrosoftAccounts, settingsCurrentOfflineAccounts, settingsCurrentMojangAccounts].forEach((container) => {
+        container.querySelectorAll('img.settingsAuthAccountImage').forEach((img) => {
+            const row = img.closest('.settingsAuthAccount')
+            const uuid = row != null ? row.getAttribute('uuid') : null
+            if(uuid != null){
+                AvatarUrls.setImgSrcWithFallbacks(img, AvatarUrls.bodyImageUrls(uuid, 60))
+            }
+        })
+    })
 }
 
 /**

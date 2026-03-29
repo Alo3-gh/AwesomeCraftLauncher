@@ -2,6 +2,15 @@
  * Script for overlay.ejs
  */
 
+var AvatarUrls = (function(){
+    const p = require('path')
+    try {
+        return require(p.join(__dirname, '..', 'avatarurls'))
+    } catch (err) {
+        return require(p.join(__dirname, 'assets', 'js', 'avatarurls'))
+    }
+})()
+
 /* Overlay Wrapper Functions */
 
 /**
@@ -305,11 +314,17 @@ function populateAccountListings(){
     let htmlString = ''
     for(let i=0; i<accounts.length; i++){
         htmlString += `<button class="accountListing" uuid="${accounts[i].uuid}" ${i===0 ? 'selected' : ''}>
-            <img src="https://mc-heads.net/head/${accounts[i].uuid}/40">
+            <img class="accountListingHead" alt="" width="40" height="40">
             <div class="accountListingName">${accounts[i].displayName}</div>
         </button>`
     }
     document.getElementById('accountSelectListScrollable').innerHTML = htmlString
+    document.getElementById('accountSelectListScrollable').querySelectorAll('button.accountListing > img.accountListingHead').forEach((img) => {
+        const uuid = img.parentElement.getAttribute('uuid')
+        if(uuid != null){
+            AvatarUrls.setImgSrcWithFallbacks(img, AvatarUrls.headImageUrls(uuid, 40))
+        }
+    })
 
 }
 

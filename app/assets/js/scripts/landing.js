@@ -30,6 +30,14 @@ const {
 // Internal Requirements
 const DiscordWrapper          = require('./assets/js/discordwrapper')
 const ProcessBuilder          = require('./assets/js/processbuilder')
+var AvatarUrls = (function(){
+    const p = require('path')
+    try {
+        return require(p.join(__dirname, '..', 'avatarurls'))
+    } catch (err) {
+        return require(p.join(__dirname, 'assets', 'js', 'avatarurls'))
+    }
+})()
 
 // Launch Elements
 const launch_content          = document.getElementById('launch_content')
@@ -144,13 +152,18 @@ document.getElementById('avatarOverlay').onclick = async e => {
 // Bind selected account
 function updateSelectedAccount(authUser){
     let username = Lang.queryJS('landing.selectedAccount.noAccountSelected')
+    const avatarEl = document.getElementById('avatarContainer')
     if(authUser != null){
         if(authUser.displayName != null){
             username = authUser.displayName
         }
         if(authUser.uuid != null){
-            document.getElementById('avatarContainer').style.backgroundImage = `url('https://mc-heads.net/body/${authUser.uuid}/right')`
+            AvatarUrls.setElementBackgroundImageWithFallbacks(avatarEl, AvatarUrls.bodyRightBackgroundUrls(authUser.uuid))
+        } else {
+            avatarEl.style.backgroundImage = 'none'
         }
+    } else {
+        avatarEl.style.backgroundImage = 'none'
     }
     user_text.innerHTML = username
 }
