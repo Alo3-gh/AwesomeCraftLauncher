@@ -1,6 +1,7 @@
 /**
- * Minecraft skin preview URLs with fallbacks (mc-heads → crafatar → minotar)
- * so avatars still load when one CDN is blocked without a proxy.
+ * Minecraft skin preview URLs with fallbacks.
+ * mc-heads → crafatar → minotar → NameMC CDN (s.namemc.com 3D render; same catalog as ru.namemc.com).
+ * NameMC has no official UUID API; texture pages use internal ids. Renders may be blocked by Cloudflare for some clients.
  */
 
 'use strict'
@@ -13,6 +14,13 @@ const IMAGE_LOAD_TIMEOUT_MS = 12000
 
 function enc(uuid) {
     return encodeURIComponent(uuid)
+}
+
+/** NameMC 3D skin render (player UUID). Catalog site: https://ru.namemc.com/minecraft-skins */
+function nameMcBodyPng(uuid, width, height) {
+    const w = Math.max(64, Math.min(512, Number(width) || 200))
+    const h = Math.max(64, Math.min(640, Number(height) || 320))
+    return `https://s.namemc.com/3d/skin/body.png?id=${encodeURIComponent(uuid)}&model=classic&width=${w}&height=${h}`
 }
 
 exports.DEFAULT_AVATAR_REL = DEFAULT_AVATAR_REL
@@ -46,7 +54,8 @@ exports.bodyImageUrls = function(uuid, height = 60) {
     const scale = bodyScaleFromHeight(height)
     return [
         `https://mc-heads.net/body/${enc(uuid)}/${height}`,
-        `https://crafatar.com/renders/body/${uuid}?scale=${scale}&overlay&default=MHF_Steve`
+        `https://crafatar.com/renders/body/${uuid}?scale=${scale}&overlay&default=MHF_Steve`,
+        nameMcBodyPng(uuid, height * 4, height * 5)
     ]
 }
 
@@ -56,7 +65,8 @@ exports.bodyImageUrls = function(uuid, height = 60) {
 exports.bodyRightBackgroundUrls = function(uuid) {
     return [
         `https://mc-heads.net/body/${enc(uuid)}/right`,
-        `https://crafatar.com/renders/body/${uuid}?scale=6&overlay&default=MHF_Steve`
+        `https://crafatar.com/renders/body/${uuid}?scale=6&overlay&default=MHF_Steve`,
+        nameMcBodyPng(uuid, 280, 320)
     ]
 }
 
