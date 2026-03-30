@@ -7,7 +7,8 @@ title = "AwesomeCraft Launcher"
 mediaGitHubURL = "https://github.com/Alo3-gh/AwesomeCraftLauncher"
 mediaXURL = "#"
 mediaInstagramURL = "#"
-mediaYouTubeURL = "#"
+mediaTwitchURL = "https://s3r4.tv/"
+mediaYouTubeURL = "https://www.youtube.com/@1serch"
 mediaDiscordURL = "https://discord.gg/playwithserch"
 
 [ejs.settings]

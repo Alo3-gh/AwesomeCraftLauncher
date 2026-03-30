@@ -3424,6 +3424,16 @@ input:checked+.toggleSwitchSlider:before {
     fill: url('#instaFill')
 }
 
+/* Twitch icon colors. */
+#twitchSVG:hover,
+#twitchURL:focus #twitchSVG {
+    fill: #9d5cff;
+}
+
+#twitchSVG:active {
+    fill: #7c3fd8;
+}
+
 /* Youtube icon colors. */
 #youtubeSVG:hover,
 #youtubeURL:focus #youtubeSVG {
