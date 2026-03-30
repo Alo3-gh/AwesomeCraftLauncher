@@ -259,6 +259,7 @@ const refreshServerStatus = async (fade = false) => {
 
     let pLabel = Lang.queryJS('landing.serverStatus.server')
     let pVal = Lang.queryJS('landing.serverStatus.offline')
+    let online = false
 
     try {
 
@@ -266,20 +267,26 @@ const refreshServerStatus = async (fade = false) => {
         console.log(servStat)
         pLabel = Lang.queryJS('landing.serverStatus.players')
         pVal = servStat.players.online + '/' + servStat.players.max
+        online = true
 
     } catch (err) {
         loggerLanding.warn('Unable to refresh server status, assuming offline.')
         loggerLanding.debug(err)
     }
+
+    const statusColor = online ? '#23aa23' : '#aa2323'
+
     if(fade){
         $('#server_status_wrapper').fadeOut(250, () => {
             document.getElementById('landingPlayerLabel').innerHTML = pLabel
             document.getElementById('player_count').innerHTML = pVal
+            document.getElementById('server_status_icon').style.color = statusColor
             $('#server_status_wrapper').fadeIn(500)
         })
     } else {
         document.getElementById('landingPlayerLabel').innerHTML = pLabel
         document.getElementById('player_count').innerHTML = pVal
+        document.getElementById('server_status_icon').style.color = statusColor
     }
     
 }

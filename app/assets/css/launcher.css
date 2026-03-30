@@ -3107,18 +3107,22 @@ input:checked+.toggleSwitchSlider:before {
 
 /* Logo image. */
 #image_seal {
-    height: 90px;
+    height: 70px;
     width: auto;
     position: relative;
-    opacity: 0; /* temporarily hidden — remove this line to restore */
+    border: 2px solid white;
+    box-sizing: border-box;
+    border-radius: 100%;
 }
 
 /* Logo container styles. */
 #image_seal_container {
     position: relative;
-    height: 90px;
-    width: 90px;
+    height: 70px;
+    width: 70px;
+    border-radius: 50%;
     margin-top: 50px;
+    background: rgba(1, 2, 1, 0.5);
 }
 
 /* Logo container styles w/ update. */
@@ -3470,7 +3474,7 @@ input:checked+.toggleSwitchSlider:before {
 /* Maintains maximum width on the status bar. */
 #server_status_wrapper {
     display: inline-flex;
-    width: 75px;
+    width: auto;
 }
 
 /* Span which displays the player count of the selected server. */
@@ -3487,6 +3491,15 @@ input:checked+.toggleSwitchSlider:before {
     position: relative;
     display: flex;
     cursor: pointer;
+}
+
+/* Icon which displays the online/offline status of the game server. */
+#server_status_icon {
+    font-size: 30px;
+    color: #aa2323;
+    margin-left: 10px;
+    font-family: 'sans-serif';
+    transition: color 0.5s ease;
 }
 
 /* Icon which displays the status of the mojang services. */

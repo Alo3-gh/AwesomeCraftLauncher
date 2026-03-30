@@ -1,7 +1,7 @@
 [ejs.landing]
 updateAvailableTooltip = "Доступно обновление"
 usernamePlaceholder = "Имя пользователя"
-usernameEditButton = "Изменить"
+usernameEditButton = "Изм."
 settingsTooltip = "Настройки"
 serverStatus = "СЕРВЕР"
 serverStatusPlaceholder = "НЕ В СЕТИ"
