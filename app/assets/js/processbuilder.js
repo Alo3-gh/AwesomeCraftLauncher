@@ -59,6 +59,7 @@ class ProcessBuilder {
      */
     build() {
         fs.ensureDirSync(this.gameDir)
+        this.ensureDefaultLanguage()
         const tempNativePath = path.join(os.tmpdir(), ConfigManager.getTempNativeFolder(), crypto.pseudoRandomBytes(16).toString('hex'))
         process.throwDeprecation = true
         this.setupLiteLoader()
@@ -121,6 +122,22 @@ class ProcessBuilder {
         })
 
         return child
+    }
+
+    /**
+     * On first launch, set the default Minecraft language.
+     * Do not overwrite user settings if options.txt already exists.
+     */
+    ensureDefaultLanguage() {
+        const optionsPath = path.join(this.gameDir, 'options.txt')
+        if (fs.pathExistsSync(optionsPath)) {
+            return
+        }
+        try {
+            fs.writeFileSync(optionsPath, 'lang:ru_ru\n', 'UTF-8')
+        } catch (err) {
+            logger.warn('Unable to write default language to options.txt', err)
+        }
     }
 
     /**
