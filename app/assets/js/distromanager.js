@@ -2,7 +2,7 @@ const { DistributionAPI } = require('helios-core/common')
 
 const ConfigManager = require('./configmanager')
 
-exports.REMOTE_DISTRO_URL = 'https://ru-files.awesome-craft.ru/launcher/distribution.json'
+exports.REMOTE_DISTRO_URL = 'https://files.awesome-craft.ru/launcher/distribution.json'
 
 const api = new DistributionAPI(
     ConfigManager.getLauncherDirectory(),
