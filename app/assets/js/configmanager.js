@@ -82,7 +82,8 @@ const DEFAULT_CONFIG = {
             resHeight: 720,
             fullscreen: false,
             autoConnect: true,
-            launchDetached: true
+            launchDetached: true,
+            minecraftLanguage: 'en_us'
         },
         launcher: {
             allowPrerelease: false,
@@ -827,6 +828,25 @@ exports.getLaunchDetached = function(def = false){
  */
 exports.setLaunchDetached = function(launchDetached){
     config.settings.game.launchDetached = launchDetached
+}
+
+/**
+ * Get the Minecraft language code to pass to the game on launch (e.g. 'en_us', 'ru_ru').
+ *
+ * @param {boolean} def Optional. If true, the default value will be returned.
+ * @returns {string} The Minecraft language code.
+ */
+exports.getMinecraftLanguage = function(def = false){
+    return !def ? config.settings.game.minecraftLanguage : DEFAULT_CONFIG.settings.game.minecraftLanguage
+}
+
+/**
+ * Set the Minecraft language code.
+ *
+ * @param {string} lang The Minecraft language code (e.g. 'en_us', 'ru_ru').
+ */
+exports.setMinecraftLanguage = function(lang){
+    config.settings.game.minecraftLanguage = lang
 }
 
 // Launcher Settings
