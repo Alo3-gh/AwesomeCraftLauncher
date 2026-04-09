@@ -569,6 +569,9 @@ class ProcessBuilder {
         // Autoconnect
         this._processAutoConnectArg(args)
 
+        // Language
+        args.push('--lang')
+        args.push(ConfigManager.getMinecraftLanguage())
 
         // Forge Specific Arguments
         args = args.concat(this.modManifest.arguments.game)
@@ -638,6 +641,10 @@ class ProcessBuilder {
 
         // Autoconnect to the selected server.
         this._processAutoConnectArg(mcArgs)
+
+        // Language
+        mcArgs.push('--lang')
+        mcArgs.push(ConfigManager.getMinecraftLanguage())
 
         // Prepare game resolution
         if (ConfigManager.getFullscreen()) {
