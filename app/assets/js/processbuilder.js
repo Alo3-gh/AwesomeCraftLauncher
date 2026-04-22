@@ -14,6 +14,8 @@ const ElybyPaths = require('./elyby/elybyPaths')
 const logger = LoggerUtil.getLogger('ProcessBuilder')
 
 function elybyJavaAgentArg() {
+    // Temporary diagnostic: disable authlib-injector to isolate NeoForge startup issues.
+    return null
     const jar = ElybyPaths.getAuthlibInjectorJarPath()
     if (!fs.pathExistsSync(jar)) {
         return null
@@ -27,7 +29,7 @@ function elybyJavaAgentArg() {
 
 
 /**
- * Only forge and fabric are top level mod loaders.
+ * Only forge, neoforge and fabric are top level mod loaders.
  * 
  * Forge 1.13+ launch logic is similar to fabrics, for now using usingFabricLoader flag to
  * change minor details when needed.
@@ -51,6 +53,7 @@ class ProcessBuilder {
 
         this.usingLiteLoader = false
         this.usingFabricLoader = false
+        this.usingNeoForgeLoader = false
         this.llPath = null
     }
 
@@ -65,7 +68,18 @@ class ProcessBuilder {
         this.setupLiteLoader()
         logger.info('Using liteloader:', this.usingLiteLoader)
         this.usingFabricLoader = this.server.modules.some(mdl => mdl.rawModule.type === Type.Fabric)
+        this.usingNeoForgeLoader = this.server.modules.some((mdl) => {
+            if (typeof mdl.rawModule.id === 'string' && mdl.rawModule.id.startsWith('net.neoforged:neoforge:')) {
+                return true
+            }
+            return mdl.subModules.some((sub) => typeof sub.rawModule.id === 'string' && sub.rawModule.id.startsWith('net.neoforged:neoforge:'))
+        }) || (
+                this.modManifest != null
+                && typeof this.modManifest.id === 'string'
+                && this.modManifest.id.toLowerCase().includes('neoforge')
+            )
         logger.info('Using fabric loader:', this.usingFabricLoader)
+        logger.info('Using neoforge loader:', this.usingNeoForgeLoader)
         const modObj = this.resolveModConfiguration(ConfigManager.getModConfiguration(this.server.rawServer.id).mods, this.server.modules)
 
         // Mod list below 1.13
@@ -90,11 +104,31 @@ class ProcessBuilder {
         loggableArgs[loggableArgs.findIndex(x => x === this.authUser.accessToken)] = '**********'
 
         logger.info('Launch Arguments:', loggableArgs)
+        const processLogFile = path.join(this.gameDir, 'launcher-process.log')
+        const appendProcessLog = (message) => {
+            const line = `[${new Date().toISOString()}] ${message}\n`
+            try {
+                fs.appendFileSync(processLogFile, line, 'utf8')
+            } catch (err) {
+                logger.warn('Failed to write launcher process trace', err)
+            }
+        }
+        let javaExec = ConfigManager.getJavaExecutable(this.server.rawServer.id)
+        if (process.platform === 'win32' && /javaw\.exe$/i.test(javaExec)) {
+            const consoleJavaExec = javaExec.replace(/javaw\.exe$/i, 'java.exe')
+            if (fs.pathExistsSync(consoleJavaExec)) {
+                javaExec = consoleJavaExec
+                logger.info('Using java.exe for diagnostics:', javaExec)
+            }
+        }
+        appendProcessLog(`java=${javaExec}`)
+        appendProcessLog(`args=${loggableArgs.join(' ')}`)
 
-        const child = child_process.spawn(ConfigManager.getJavaExecutable(this.server.rawServer.id), args, {
+        const child = child_process.spawn(javaExec, args, {
             cwd: this.gameDir,
             detached: ConfigManager.getLaunchDetached()
         })
+        appendProcessLog(`spawned pid=${child.pid ?? 'unknown'}`)
 
         if (ConfigManager.getLaunchDetached()) {
             child.unref()
@@ -104,13 +138,20 @@ class ProcessBuilder {
         child.stderr.setEncoding('utf8')
 
         child.stdout.on('data', (data) => {
+            appendProcessLog(`stdout=${String(data).replaceAll('\n', '\\n')}`)
             data.trim().split('\n').forEach(x => console.log(`\x1b[32m[Minecraft]\x1b[0m ${x}`))
 
         })
         child.stderr.on('data', (data) => {
+            appendProcessLog(`stderr=${String(data).replaceAll('\n', '\\n')}`)
             data.trim().split('\n').forEach(x => console.log(`\x1b[31m[Minecraft]\x1b[0m ${x}`))
         })
+        child.on('error', (err) => {
+            appendProcessLog(`error=${err?.message ?? err}`)
+            logger.error('Minecraft child process emitted an error', err)
+        })
         child.on('close', (code) => {
+            appendProcessLog(`close code=${code}`)
             logger.info('Exited with code', code)
             fs.remove(tempNativePath, (err) => {
                 if (err) {
@@ -244,6 +285,18 @@ class ProcessBuilder {
         return Number(this.modManifest.id.split('-')[0].split('.')[1]) <= Number(version)
     }
 
+    _getForgeLikeStoreRelative() {
+        return this.usingNeoForgeLoader
+            ? path.join('..', '..', 'common', 'neoforgestore')
+            : path.join('..', '..', 'common', 'modstore')
+    }
+
+    _getForgeLikeStoreAbsolute() {
+        return this.usingNeoForgeLoader
+            ? path.join(this.commonDir, 'neoforgestore')
+            : path.join(this.commonDir, 'modstore')
+    }
+
     /**
      * Test to see if this version of forge requires the absolute: prefix
      * on the modListFile repository field.
@@ -282,7 +335,7 @@ class ProcessBuilder {
      */
     constructJSONModList(type, mods, save = false) {
         const modList = {
-            repositoryRoot: ((type === 'forge' && this._requiresAbsolute()) ? 'absolute:' : '') + path.join(this.commonDir, 'modstore')
+            repositoryRoot: ((type === 'forge' && this._requiresAbsolute()) ? 'absolute:' : '') + this._getForgeLikeStoreAbsolute()
         }
 
         const ids = []
@@ -334,24 +387,32 @@ class ProcessBuilder {
      * @param {Array.<Object>} mods An array of mods to add to the mod list.
      */
     constructModList(mods) {
-        const writeBuffer = mods.map(mod => {
+        const entries = mods.map(mod => {
             return this.usingFabricLoader ? mod.getPath() : mod.getExtensionlessMavenIdentifier()
-        }).join('\n')
+        })
 
-        if (writeBuffer) {
-            fs.writeFileSync(this.forgeModListFile, writeBuffer, 'UTF-8')
-            return this.usingFabricLoader ? [
+        const writeBuffer = entries.join('\n')
+        // Always rewrite the mod list file so stale entries from previous runs
+        // (e.g. removed optional mods) cannot leak into the next launch.
+        fs.writeFileSync(this.forgeModListFile, writeBuffer, 'UTF-8')
+
+        if (this.usingFabricLoader) {
+            return writeBuffer ? [
                 '--fabric.addMods',
                 `@${this.forgeModListFile}`
-            ] : [
-                '--fml.mavenRoots',
-                path.join('..', '..', 'common', 'modstore'),
-                '--fml.modLists',
-                this.forgeModListFile
-            ]
-        } else {
-            return []
+            ] : []
         }
+
+        // Forge/NeoForge require maven roots/mod list wiring even with an empty
+        // list, otherwise loader roots can differ between "mods" and "no mods".
+        return [
+            '--fml.mavenRoots',
+            this.usingNeoForgeLoader
+                ? `${this._getForgeLikeStoreRelative()},${path.join('..', '..', 'common', 'modstore')},${path.join('..', '..', 'common', 'libraries')}`
+                : this._getForgeLikeStoreRelative(),
+            '--fml.modLists',
+            this.forgeModListFile
+        ]
 
     }
 
@@ -459,6 +520,29 @@ class ProcessBuilder {
             }
         }
 
+        if (this.usingNeoForgeLoader) {
+            const expectedIgnoredJars = new Set([
+                `${this.modManifest.id}.jar`,
+                `${this.modManifest.id}-client.jar`,
+                `${this.modManifest.id}-universal.jar`
+            ])
+            args = args.map((arg) => {
+                if (typeof arg !== 'string' || !arg.startsWith('-DignoreList=')) {
+                    return arg
+                }
+                const payload = arg.substring('-DignoreList='.length)
+                const entries = payload.split(',')
+                    .map((x) => x.trim())
+                    .filter((x) => x.length > 0)
+                for (const jarName of expectedIgnoredJars) {
+                    if (!entries.includes(jarName)) {
+                        entries.push(jarName)
+                    }
+                }
+                return `-DignoreList=${entries.join(',')}`
+            })
+        }
+
         //args.push('-Dlog4j.configurationFile=D:\\WesterosCraft\\game\\common\\assets\\log_configs\\client-1.12.xml')
 
         // Java Arguments
@@ -531,8 +615,11 @@ class ProcessBuilder {
                             val = this.authUser.displayName.trim()
                             break
                         case 'version_name':
-                            //val = vanillaManifest.id
-                            val = this.server.rawServer.id
+                            // NeoForge launch should pass the loader profile id as version_name.
+                            // Raw vanilla jar handling for ignoreList is processed separately.
+                            val = this.usingNeoForgeLoader
+                                ? this.modManifest.id
+                                : this.server.rawServer.id
                             break
                         case 'game_directory':
                             val = this.gameDir
@@ -548,6 +635,16 @@ class ProcessBuilder {
                             break
                         case 'auth_access_token':
                             val = this.authUser.accessToken
+                            break
+                        case 'clientid':
+                            // Modern MC includes this arg in manifests. For non-Microsoft
+                            // auth flows we pass an empty value instead of leaving a raw
+                            // placeholder token in the launch command.
+                            val = ConfigManager.getClientToken() || ''
+                            break
+                        case 'auth_xuid':
+                            // XUID is only available for Microsoft accounts.
+                            val = this.authUser.xuid || ''
                             break
                         case 'user_type':
                             val = this.authUser.type === 'microsoft'
@@ -567,7 +664,7 @@ class ProcessBuilder {
                             val = args[i].replace(argDiscovery, tempNativePath)
                             break
                         case 'launcher_name':
-                            val = args[i].replace(argDiscovery, 'Helios-Launcher')
+                            val = args[i].replace(argDiscovery, 'AwesomeCraft-Launcher')
                             break
                         case 'launcher_version':
                             val = args[i].replace(argDiscovery, this.launcherVersion)
@@ -589,6 +686,53 @@ class ProcessBuilder {
 
         // Forge Specific Arguments
         args = args.concat(this.modManifest.arguments.game)
+
+        logger.info('[PB-NEOFORGE-TRACE] usingNeoForgeLoader =', this.usingNeoForgeLoader)
+        if (this.usingNeoForgeLoader) {
+            logger.info('[PB-NEOFORGE-TRACE] Enter NeoForge game-args patch block')
+            const mavenRootsFlag = '--fml.mavenRoots'
+            const modstoreRoot = this._getForgeLikeStoreRelative().replaceAll('/', '\\')
+            const legacyModstoreRoot = '..\\..\\common\\modstore'
+            const librariesRoot = '..\\..\\common\\libraries'
+            for (let i = 0; i < args.length - 1; i++) {
+                if (args[i] !== mavenRootsFlag || typeof args[i + 1] !== 'string') {
+                    continue
+                }
+                const oldRootsValue = args[i + 1]
+                logger.info('[PB-NEOFORGE-TRACE] fml.mavenRoots before =', oldRootsValue)
+                const roots = args[i + 1]
+                    .split(',')
+                    .map((x) => x.trim())
+                    .filter((x) => x.length > 0)
+                if (!roots.includes(modstoreRoot)) {
+                    roots.push(modstoreRoot)
+                }
+                if (!roots.includes(legacyModstoreRoot)) {
+                    roots.push(legacyModstoreRoot)
+                }
+                if (!roots.includes(librariesRoot)) {
+                    roots.push(librariesRoot)
+                }
+                args[i + 1] = roots.join(',')
+                logger.info('[PB-NEOFORGE-TRACE] fml.mavenRoots after =', args[i + 1])
+            }
+        }
+
+        // For non-Microsoft auth flows (elyby/mojang), xuid/clientId are not applicable.
+        // Passing empty xuid can break argument parsing on some modern runtimes.
+        if (this.authUser.type !== 'microsoft') {
+            const stripFlags = new Set(['--xuid', '--clientId'])
+            const filtered = []
+            for (let i = 0; i < args.length; i++) {
+                const current = args[i]
+                if (typeof current === 'string' && stripFlags.has(current)) {
+                    i += 1
+                    continue
+                }
+                filtered.push(current)
+            }
+            args = filtered
+        }
 
         // Filter null values
         args = args.filter(arg => {
@@ -617,8 +761,9 @@ class ProcessBuilder {
                         val = this.authUser.displayName.trim()
                         break
                     case 'version_name':
-                        //val = vanillaManifest.id
-                        val = this.server.rawServer.id
+                        val = this.usingNeoForgeLoader
+                            ? this.modManifest.id
+                            : this.server.rawServer.id
                         break
                     case 'game_directory':
                         val = this.gameDir
