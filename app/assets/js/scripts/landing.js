@@ -26,6 +26,7 @@ const {
     latestOpenJDK,
     extractJdk
 } = require('helios-core/java')
+const electronIpcRenderer = require('electron').ipcRenderer
 
 // Internal Requirements
 const DiscordWrapper = require('./assets/js/discordwrapper')
@@ -678,6 +679,7 @@ async function dlAsync(login = true) {
                     DiscordWrapper.shutdownRPC()
                     hasRPC = false
                 }
+                electronIpcRenderer.send('launcherWindowFocus')
                 proc = null
                 setLaunchInProgress(false)
             })

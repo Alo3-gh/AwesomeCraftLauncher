@@ -89,6 +89,25 @@ ipcMain.on('distributionIndexDone', (event, res) => {
     event.sender.send('distributionIndexDone', res)
 })
 
+ipcMain.on('launcherWindowFocus', () => {
+    if (!win || win.isDestroyed()) {
+        return
+    }
+    if (win.isMinimized()) {
+        win.restore()
+    }
+    win.show()
+    win.focus()
+    if (process.platform === 'win32') {
+        win.setAlwaysOnTop(true)
+        setTimeout(() => {
+            if (win && !win.isDestroyed()) {
+                win.setAlwaysOnTop(false)
+            }
+        }, 250)
+    }
+})
+
 // Handle trash item.
 ipcMain.handle(SHELL_OPCODE.TRASH_ITEM, async (event, ...args) => {
     try {

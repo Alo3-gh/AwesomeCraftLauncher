@@ -14,8 +14,6 @@ const ElybyPaths = require('./elyby/elybyPaths')
 const logger = LoggerUtil.getLogger('ProcessBuilder')
 
 function elybyJavaAgentArg() {
-    // Temporary diagnostic: disable authlib-injector to isolate NeoForge startup issues.
-    return null
     const jar = ElybyPaths.getAuthlibInjectorJarPath()
     if (!fs.pathExistsSync(jar)) {
         return null
@@ -74,10 +72,10 @@ class ProcessBuilder {
             }
             return mdl.subModules.some((sub) => typeof sub.rawModule.id === 'string' && sub.rawModule.id.startsWith('net.neoforged:neoforge:'))
         }) || (
-                this.modManifest != null
-                && typeof this.modManifest.id === 'string'
-                && this.modManifest.id.toLowerCase().includes('neoforge')
-            )
+            this.modManifest != null
+            && typeof this.modManifest.id === 'string'
+            && this.modManifest.id.toLowerCase().includes('neoforge')
+        )
         logger.info('Using fabric loader:', this.usingFabricLoader)
         logger.info('Using neoforge loader:', this.usingNeoForgeLoader)
         const modObj = this.resolveModConfiguration(ConfigManager.getModConfiguration(this.server.rawServer.id).mods, this.server.modules)
@@ -104,31 +102,10 @@ class ProcessBuilder {
         loggableArgs[loggableArgs.findIndex(x => x === this.authUser.accessToken)] = '**********'
 
         logger.info('Launch Arguments:', loggableArgs)
-        const processLogFile = path.join(this.gameDir, 'launcher-process.log')
-        const appendProcessLog = (message) => {
-            const line = `[${new Date().toISOString()}] ${message}\n`
-            try {
-                fs.appendFileSync(processLogFile, line, 'utf8')
-            } catch (err) {
-                logger.warn('Failed to write launcher process trace', err)
-            }
-        }
-        let javaExec = ConfigManager.getJavaExecutable(this.server.rawServer.id)
-        if (process.platform === 'win32' && /javaw\.exe$/i.test(javaExec)) {
-            const consoleJavaExec = javaExec.replace(/javaw\.exe$/i, 'java.exe')
-            if (fs.pathExistsSync(consoleJavaExec)) {
-                javaExec = consoleJavaExec
-                logger.info('Using java.exe for diagnostics:', javaExec)
-            }
-        }
-        appendProcessLog(`java=${javaExec}`)
-        appendProcessLog(`args=${loggableArgs.join(' ')}`)
-
-        const child = child_process.spawn(javaExec, args, {
+        const child = child_process.spawn(ConfigManager.getJavaExecutable(this.server.rawServer.id), args, {
             cwd: this.gameDir,
             detached: ConfigManager.getLaunchDetached()
         })
-        appendProcessLog(`spawned pid=${child.pid ?? 'unknown'}`)
 
         if (ConfigManager.getLaunchDetached()) {
             child.unref()
@@ -138,20 +115,16 @@ class ProcessBuilder {
         child.stderr.setEncoding('utf8')
 
         child.stdout.on('data', (data) => {
-            appendProcessLog(`stdout=${String(data).replaceAll('\n', '\\n')}`)
             data.trim().split('\n').forEach(x => console.log(`\x1b[32m[Minecraft]\x1b[0m ${x}`))
 
         })
         child.stderr.on('data', (data) => {
-            appendProcessLog(`stderr=${String(data).replaceAll('\n', '\\n')}`)
             data.trim().split('\n').forEach(x => console.log(`\x1b[31m[Minecraft]\x1b[0m ${x}`))
         })
         child.on('error', (err) => {
-            appendProcessLog(`error=${err?.message ?? err}`)
             logger.error('Minecraft child process emitted an error', err)
         })
         child.on('close', (code) => {
-            appendProcessLog(`close code=${code}`)
             logger.info('Exited with code', code)
             fs.remove(tempNativePath, (err) => {
                 if (err) {
@@ -687,19 +660,15 @@ class ProcessBuilder {
         // Forge Specific Arguments
         args = args.concat(this.modManifest.arguments.game)
 
-        logger.info('[PB-NEOFORGE-TRACE] usingNeoForgeLoader =', this.usingNeoForgeLoader)
         if (this.usingNeoForgeLoader) {
-            logger.info('[PB-NEOFORGE-TRACE] Enter NeoForge game-args patch block')
             const mavenRootsFlag = '--fml.mavenRoots'
-            const modstoreRoot = this._getForgeLikeStoreRelative().replaceAll('/', '\\')
-            const legacyModstoreRoot = '..\\..\\common\\modstore'
-            const librariesRoot = '..\\..\\common\\libraries'
+            const modstoreRoot = this._getForgeLikeStoreRelative()
+            const legacyModstoreRoot = path.join('..', '..', 'common', 'modstore')
+            const librariesRoot = path.join('..', '..', 'common', 'libraries')
             for (let i = 0; i < args.length - 1; i++) {
                 if (args[i] !== mavenRootsFlag || typeof args[i + 1] !== 'string') {
                     continue
                 }
-                const oldRootsValue = args[i + 1]
-                logger.info('[PB-NEOFORGE-TRACE] fml.mavenRoots before =', oldRootsValue)
                 const roots = args[i + 1]
                     .split(',')
                     .map((x) => x.trim())
@@ -714,7 +683,6 @@ class ProcessBuilder {
                     roots.push(librariesRoot)
                 }
                 args[i + 1] = roots.join(',')
-                logger.info('[PB-NEOFORGE-TRACE] fml.mavenRoots after =', args[i + 1])
             }
         }
 
