@@ -3696,6 +3696,9 @@ input:checked+.toggleSwitchSlider:before {
     background: none;
     border: none;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     font-weight: 900;
     letter-spacing: 2px;
     text-shadow: 0px 0px 0px #bebcbb;
@@ -3719,6 +3722,29 @@ input:checked+.toggleSwitchSlider:before {
     color: #c7c7c7;
     cursor: default;
     pointer-events: none;
+}
+
+.launchButtonSpinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 6px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    vertical-align: middle;
+    opacity: 0.85;
+    animation: launchButtonSpinnerRotate 0.8s linear infinite;
+}
+
+@keyframes launchButtonSpinnerRotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Launch details main container, hidden until launch processing begins. */
@@ -3757,8 +3783,14 @@ input:checked+.toggleSwitchSlider:before {
     border: none;
     outline: none;
     cursor: pointer;
+    display: inline-block;
+    max-width: 220px;
     line-height: 24px;
     padding: 0px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
     transition: 0.25s ease;
 }
 

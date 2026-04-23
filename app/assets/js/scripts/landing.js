@@ -107,9 +107,20 @@ function setDownloadPercentage(percent) {
 let launchEnabledBySelection = false
 let launchInProgress = false
 
+function updateLaunchButtonText() {
+    const launchButton = document.getElementById('launch_button')
+    if (launchInProgress) {
+        const launchingText = Lang.queryJS('landing.launch.launchButtonLaunching')
+        launchButton.innerHTML = `<span class="launchButtonSpinner" aria-hidden="true"></span>${launchingText}`
+    } else {
+        launchButton.textContent = Lang.query('ejs.landing.launchButton')
+    }
+}
+
 function updateLaunchButtonState() {
     const launchButton = document.getElementById('launch_button')
     launchButton.disabled = !launchEnabledBySelection || launchInProgress
+    updateLaunchButtonText()
 }
 
 function setLaunchEnabled(val) {
@@ -121,6 +132,8 @@ function setLaunchInProgress(val) {
     launchInProgress = val
     updateLaunchButtonState()
 }
+
+updateLaunchButtonText()
 
 // Bind launch button
 document.getElementById('launch_button').addEventListener('click', async e => {
@@ -198,14 +211,18 @@ function updateSelectedServer(serv) {
     }
     ConfigManager.setSelectedServer(serv != null ? serv.rawServer.id : null)
     ConfigManager.save()
-    server_selection_button.innerHTML = '&#8226; ' + (serv != null ? serv.rawServer.name : Lang.queryJS('landing.noSelection'))
+    const serverLabel = serv != null ? serv.rawServer.name : Lang.queryJS('landing.noSelection')
+    server_selection_button.textContent = `• ${serverLabel}`
+    server_selection_button.title = serverLabel
     if (getCurrentView() === VIEWS.settings) {
         animateSettingsTabRefresh()
     }
     setLaunchEnabled(serv != null)
 }
 // Real text is set in uibinder.js on distributionIndexDone.
-server_selection_button.innerHTML = '&#8226; ' + Lang.queryJS('landing.selectedServer.loading')
+const loadingServerLabel = Lang.queryJS('landing.selectedServer.loading')
+server_selection_button.textContent = `• ${loadingServerLabel}`
+server_selection_button.title = loadingServerLabel
 server_selection_button.onclick = async e => {
     e.target.blur()
     await toggleServerSelection(true)

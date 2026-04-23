@@ -203,6 +203,7 @@ desc = "Произошла неизвестная ошибка. Подробно
 
 [js.landing.launch]
 pleaseWait = "Подождите.."
+launchButtonLaunching = "Запуск..."
 failureTitle = "Ошибка запуска"
 failureText = "Подробности в консоли (CTRL + Shift + i)."
 okay = "ОК"

@@ -96,16 +96,11 @@ ipcMain.on('launcherWindowFocus', () => {
     if (win.isMinimized()) {
         win.restore()
     }
-    win.show()
-    win.focus()
-    if (process.platform === 'win32') {
-        win.setAlwaysOnTop(true)
-        setTimeout(() => {
-            if (win && !win.isDestroyed()) {
-                win.setAlwaysOnTop(false)
-            }
-        }, 250)
+    if (!win.isVisible()) {
+        win.show()
     }
+    win.setSkipTaskbar(false)
+    win.focus()
 })
 
 // Handle trash item.

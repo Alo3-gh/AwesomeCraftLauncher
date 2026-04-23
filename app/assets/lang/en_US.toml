@@ -203,6 +203,7 @@ desc = "An unknown error has occurred. Please see the console for details."
 
 [js.landing.launch]
 pleaseWait = "Please wait.."
+launchButtonLaunching = "Launching..."
 failureTitle = "Error During Launch"
 failureText = "See console (CTRL + Shift + i) for more details."
 okay = "Okay"
