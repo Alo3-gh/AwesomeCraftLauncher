@@ -89,6 +89,20 @@ ipcMain.on('distributionIndexDone', (event, res) => {
     event.sender.send('distributionIndexDone', res)
 })
 
+ipcMain.on('launcherWindowFocus', () => {
+    if (!win || win.isDestroyed()) {
+        return
+    }
+    if (win.isMinimized()) {
+        win.restore()
+    }
+    if (!win.isVisible()) {
+        win.show()
+    }
+    win.setSkipTaskbar(false)
+    win.focus()
+})
+
 // Handle trash item.
 ipcMain.handle(SHELL_OPCODE.TRASH_ITEM, async (event, ...args) => {
     try {
