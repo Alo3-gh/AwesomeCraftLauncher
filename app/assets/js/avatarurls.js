@@ -158,8 +158,8 @@ exports.setImgSrcWithFallbacks = function(img, urls) {
 // Ely.by-only UUIDs. We fetch the raw skin texture from skinsystem.ely.by and
 // render head/body client-side with the Canvas API.
 
-const ELY_SKIN_URL = (name) =>
-    `https://skinsystem.ely.by/skins/${encodeURIComponent(name)}.png`
+const ELY_SKIN_URL = (name, cacheBust = Date.now()) =>
+    `https://skinsystem.ely.by/skins/${encodeURIComponent(name)}.png?v=${encodeURIComponent(cacheBust)}`
 
 function loadSkinImage(url) {
     return new Promise((resolve, reject) => {
