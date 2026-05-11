@@ -713,7 +713,11 @@ function populateAuthAccounts(){
                 if(acc && acc.type === 'elyby') {
                     AvatarUrls.setElybyBodySrc(img, acc.displayName, 60)
                 } else {
-                    AvatarUrls.setImgSrcWithFallbacks(img, AvatarUrls.bodyImageUrlsForAccount(acc, 60))
+                    AvatarUrls.setImgSrcWithFallbacks(
+                        img,
+                        AvatarUrls.bodyImageUrlsForAccount(acc, 60),
+                        `settings-body-${acc?.uuid ?? 'unknown'}`
+                    )
                 }
             }
         })

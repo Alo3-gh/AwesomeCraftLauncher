@@ -192,7 +192,11 @@ function updateSelectedAccount(authUser) {
             if (authUser.type === 'elyby') {
                 AvatarUrls.setElybyBackgroundSrc(avatarEl, authUser.displayName)
             } else {
-                AvatarUrls.setElementBackgroundImageWithFallbacks(avatarEl, AvatarUrls.bodyRightBackgroundUrlsForAccount(authUser))
+                AvatarUrls.setElementBackgroundImageWithFallbacks(
+                    avatarEl,
+                    AvatarUrls.bodyRightBackgroundUrlsForAccount(authUser),
+                    `landing-body-${authUser.uuid}`
+                )
             }
         } else {
             avatarEl.style.backgroundImage = 'none'

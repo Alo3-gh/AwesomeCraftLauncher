@@ -11,6 +11,29 @@ const DEFAULT_AVATAR_REL = 'assets/images/icons/profile.svg'
 
 /** Avoid hanging forever if a skin CDN accepts the connection but never finishes. */
 const IMAGE_LOAD_TIMEOUT_MS = 12000
+const AVATAR_CACHE_PREFIX = 'ac.avatar.'
+
+function getCachedAvatarUrl(cacheKey) {
+    if(!cacheKey){
+        return null
+    }
+    try {
+        return localStorage.getItem(AVATAR_CACHE_PREFIX + cacheKey)
+    } catch {
+        return null
+    }
+}
+
+function setCachedAvatarUrl(cacheKey, url) {
+    if(!cacheKey || !url){
+        return
+    }
+    try {
+        localStorage.setItem(AVATAR_CACHE_PREFIX + cacheKey, url)
+    } catch {
+        // Ignore storage write failures (private mode, quota, etc).
+    }
+}
 
 function enc(uuid) {
     return encodeURIComponent(uuid)
@@ -123,8 +146,11 @@ exports.bodyRightBackgroundUrlsForAccount = function(acc) {
 /**
  * @param {HTMLImageElement} img
  * @param {string[]} urls
+ * @param {string} [cacheKey]
  */
-exports.setImgSrcWithFallbacks = function(img, urls) {
+exports.setImgSrcWithFallbacks = function(img, urls, cacheKey) {
+    const cachedUrl = getCachedAvatarUrl(cacheKey)
+    const candidates = cachedUrl != null ? [cachedUrl, ...urls.filter(u => u !== cachedUrl)] : urls
     let i = 0
     let timer = null
     const clearTimer = () => {
@@ -137,15 +163,20 @@ exports.setImgSrcWithFallbacks = function(img, urls) {
         clearTimer()
         img.onload = null
         img.onerror = null
-        if(i >= urls.length){
-            img.src = DEFAULT_AVATAR_REL
+        if(i >= candidates.length){
+            if(cachedUrl != null){
+                img.src = cachedUrl
+            } else {
+                img.src = DEFAULT_AVATAR_REL
+            }
             return
         }
-        const u = urls[i++]
+        const u = candidates[i++]
         timer = setTimeout(next, IMAGE_LOAD_TIMEOUT_MS)
         img.onload = () => {
             clearTimer()
             img.onerror = null
+            setCachedAvatarUrl(cacheKey, u)
         }
         img.onerror = next
         img.src = u
@@ -306,8 +337,11 @@ exports.setElybyBackgroundSrc = async function(el, displayName, height = 320) {
 /**
  * @param {HTMLElement} el element with style.backgroundImage
  * @param {string[]} urls
+ * @param {string} [cacheKey]
  */
-exports.setElementBackgroundImageWithFallbacks = function(el, urls) {
+exports.setElementBackgroundImageWithFallbacks = function(el, urls, cacheKey) {
+    const cachedUrl = getCachedAvatarUrl(cacheKey)
+    const candidates = cachedUrl != null ? [cachedUrl, ...urls.filter(u => u !== cachedUrl)] : urls
     let idx = 0
     let timer = null
     const finalCss = `url('${DEFAULT_AVATAR_REL}')`
@@ -319,16 +353,21 @@ exports.setElementBackgroundImageWithFallbacks = function(el, urls) {
     }
     const attempt = () => {
         clearTimer()
-        if(idx >= urls.length){
-            el.style.backgroundImage = finalCss
+        if(idx >= candidates.length){
+            if(cachedUrl != null){
+                el.style.backgroundImage = `url('${cachedUrl}')`
+            } else {
+                el.style.backgroundImage = finalCss
+            }
             return
         }
-        const u = urls[idx++]
+        const u = candidates[idx++]
         const probe = new Image()
         timer = setTimeout(attempt, IMAGE_LOAD_TIMEOUT_MS)
         probe.onload = () => {
             clearTimer()
             el.style.backgroundImage = `url('${u}')`
+            setCachedAvatarUrl(cacheKey, u)
         }
         probe.onerror = () => {
             clearTimer()

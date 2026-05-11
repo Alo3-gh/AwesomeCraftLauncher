@@ -326,7 +326,11 @@ function populateAccountListings(){
             if(acc && acc.type === 'elyby') {
                 AvatarUrls.setElybyHeadSrc(img, acc.displayName, 40)
             } else {
-                AvatarUrls.setImgSrcWithFallbacks(img, AvatarUrls.headImageUrlsForAccount(acc, 40))
+                AvatarUrls.setImgSrcWithFallbacks(
+                    img,
+                    AvatarUrls.headImageUrlsForAccount(acc, 40),
+                    `overlay-head-${acc?.uuid ?? 'unknown'}`
+                )
             }
         }
     })
