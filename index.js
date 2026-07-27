@@ -239,7 +239,7 @@ let win
 function createWindow() {
 
     win = new BrowserWindow({
-        width: 980,
+        width: 990,
         height: 552,
         icon: getPlatformIcon('SealCircle'),
         frame: false,
@@ -266,7 +266,7 @@ function createWindow() {
 
     win.removeMenu()
 
-    win.resizable = true
+    win.resizable = false
 
     win.on('closed', () => {
         win = null

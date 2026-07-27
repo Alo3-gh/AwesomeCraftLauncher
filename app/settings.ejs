@@ -62,7 +62,7 @@
                         <span><%- lang('settings.microsoftAccount') %></span>
                     </div>
                     <div class="settingsAuthAccountTypeHeaderRight">
-                        <button class="settingsAddAuthAccount" id="settingsAddMicrosoftAccount"><%-
+                        <button class="settingsAddAuthAccount" disabled id="settingsAddMicrosoftAccount"><%-
                                 lang('settings.addMicrosoftAccount') %></button>
                     </div>
                 </div>
@@ -70,6 +70,8 @@
                 <div class="settingsCurrentAccounts" id="settingsCurrentMicrosoftAccounts">
                     <!-- Microsoft auth accounts populated here. -->
                 </div>
+
+                <p><%-lang('settings.tempUnavailable') %></p>
             </div>
 
             <%# Mojang accounts hidden from UI but DOM kept for JS population of existing saved accounts %>

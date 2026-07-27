@@ -141,6 +141,7 @@ launcherUpdatesHeaderDesc = "Скачивание, установка и про�
 checkForUpdates = "Проверить обновления"
 whatsNew = "Что нового"
 updateReleaseNotes = "Примечания к обновлению"
+tempUnavailable = "Временно недоступно"
 
 [ejs.waiting]
 waitingText = "Ожидание Microsoft.."
@@ -203,7 +204,7 @@ desc = "Произошла неизвестная ошибка. Подробно
 
 [js.landing.launch]
 pleaseWait = "Подождите.."
-launchButtonLaunching = "Запуск..."
+launchButtonLaunching = "Запуск.."
 failureTitle = "Ошибка запуска"
 failureText = "Подробности в консоли (CTRL + Shift + i)."
 okay = "ОК"
