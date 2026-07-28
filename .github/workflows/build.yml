@@ -1,17 +1,89 @@
 name: Build
 
-on: push
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
-  release:
+  prepare:
+    name: Check release version
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.check.outputs.should_build }}
+      version: ${{ steps.version.outputs.version }}
+      tag_name: ${{ steps.release_config.outputs.tag_name }}
+      prerelease: ${{ steps.release_config.outputs.prerelease }}
+      make_latest: ${{ steps.release_config.outputs.make_latest }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Read package version
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Configure release metadata
+        id: release_config
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          BRANCH="${{ github.ref_name }}"
+
+          echo "tag_name=v${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          echo "make_latest=true" >> "$GITHUB_OUTPUT"
+          echo "tag_pattern=^v${VERSION}$" >> "$GITHUB_OUTPUT"
+
+      - name: Check if release already exists
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          REPO="${{ github.repository }}"
+          TAG_PATTERN="${{ steps.release_config.outputs.tag_pattern }}"
+
+          if [ -z "$REPO" ]; then
+            echo "No release target for branch ${{ github.ref_name }}, proceeding with build."
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          MATCH_COUNT=$(gh release list --repo "$REPO" --json tagName \
+            --jq "[.[] | select(.tagName | test(\"${TAG_PATTERN}\"))] | length")
+
+          if [ "$MATCH_COUNT" -gt 0 ]; then
+            echo "Release ${{ steps.release_config.outputs.tag_name }} already exists in ${REPO}, skipping build."
+            echo "should_build=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "No release for ${{ steps.release_config.outputs.tag_name }} in ${REPO}, build required."
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+          fi
+
+
+  build:
+    if: needs.prepare.outputs.should_build == 'true'
+    needs: prepare
     runs-on: ${{ matrix.os }}
 
-    permissions:
-      contents: write
-
     strategy:
+      fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        include:
+          - platform: windows
+            os: windows-latest
+            electron_builder_target: --win
+          - platform: linux
+            os: ubuntu-latest
+            electron_builder_target: --linux
+          - platform: macos
+            os: macos-latest
+            electron_builder_target: --mac
 
     steps:
       - name: Check out Git repository
@@ -22,17 +94,95 @@ jobs:
         with:
           node-version: 22
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: 3.x
 
       - name: Install Dependencies
         run: npm ci
-        shell: bash
+      
+      - name: Package for ${{ matrix.platform }}
+        run: npx electron-builder ${{ matrix.electron_builder_target }} --publish never
 
-      - name: Build
+      - name: Upload distribution artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.platform }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 1
+
+  release:
+    name: Publish release
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    if: needs.prepare.outputs.should_build == 'true'
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          pattern: dist-*
+          merge-multiple: true
+
+      - name: Write release notes
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run dist
-        shell: bash
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          cat > release-notes.md <<EOF
+          ## English
+
+          Download the file for your operating system:
+
+          | File | Platform |
+          |------|----------|
+          | \`AwesomeCraftLauncher-setup-${VERSION}.exe\` | Windows (installer) |
+          | \`AwesomeCraftLauncher-setup-${VERSION}.AppImage\` | Linux |
+          | \`AwesomeCraftLauncher-setup-${VERSION}-arm64.dmg\` | macOS (Apple Silicon) |
+          | \`AwesomeCraftLauncher-setup-${VERSION}-x64.dmg\` | macOS (Intel) |
+
+          ## Русский
+
+          Скачайте файл для вашей операционной системы:
+
+          | Файл | Платформа |
+          |------|-----------|
+          | \`AwesomeCraftLauncher-setup-${VERSION}.exe\` | Windows (установщик) |
+          | \`AwesomeCraftLauncher-setup-${VERSION}.AppImage\` | Linux |
+          | \`AwesomeCraftLauncher-setup-${VERSION}-arm64.dmg\` | macOS (Apple Silicon) |
+          | \`AwesomeCraftLauncher-setup-${VERSION}-x64.dmg\` | macOS (Intel) |
+
+          ## Українська
+
+          Завантажте файл для вашої операційної системи:
+
+          | Файл | Платформа |
+          |------|-----------|
+          | \`AwesomeCraftLauncher-setup-${VERSION}.exe\` | Windows (інсталятор) |
+          | \`AwesomeCraftLauncher-setup-${VERSION}.AppImage\` | Linux |
+          | \`AwesomeCraftLauncher-setup-${VERSION}-arm64.dmg\` | macOS (Apple Silicon) |
+          | \`AwesomeCraftLauncher-setup-${VERSION}-x64.dmg\` | macOS (Intel) |
+          EOF
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ needs.prepare.outputs.tag_name }}
+          name: AwesomeCraftLauncher v${{ needs.prepare.outputs.version }} (${{ github.ref_name }})
+          body_path: release-notes.md
+          prerelease: ${{ needs.prepare.outputs.prerelease == 'true' }}
+          make_latest: ${{ needs.prepare.outputs.make_latest == 'true' }}
+          files: release-assets/*
+
+  cleanup-artifacts:
+    name: Clean up build artifacts
+    needs: [prepare, release]
+    if: needs.release.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Delete distribution artifacts
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: dist-*
+          failOnError: false
